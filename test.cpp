@@ -10,9 +10,9 @@ std::string::size_type find_first_delimiter(std::string str, std::string::size_t
 {
     std::string::size_type len = size - 1;
     std::string english_signs = " ,./;:'[]\\`\"<>?";
-    std::string chinese_signs = "ï¼Œã€‚ï¼Ÿã€ï¼›ï¼šâ€˜â€œâ€™â€ã€ã€‘Â·ã€Šã€‹";
+    std::string chinese_signs = "£¬¡££¿¡¢£»£º¡®¡°¡¯¡±¡¾¡¿¡¤¡¶¡·";
 
-    if(start == len - 1){            //å¦‚æœstartæ˜¯stræœ€åä¸€ä¸ªå­—èŠ‚
+    if(start == len - 1){            //Èç¹ûstartÊÇstr×îºóÒ»¸ö×Ö½Ú
         for(int k = 0; k < 17; k++){     
             if (str[len] == english_signs[k]){
                 language = ENGLISH;
@@ -21,13 +21,13 @@ std::string::size_type find_first_delimiter(std::string str, std::string::size_t
         }
     }
     for(int i = start; i < len; i++){
-        for(int k = 0; k < 17; k++){     //åˆ¤æ–­è‹±æ–‡æ ‡ç‚¹ç¬¦å·å’Œç©ºæ ¼
+        for(int k = 0; k < 17; k++){     //ÅĞ¶ÏÓ¢ÎÄ±êµã·ûºÅºÍ¿Õ¸ñ
             if (str[i] == english_signs[k]){
                 language = ENGLISH;
                 return i;
             }
         }
-        for (int j = 0; j < 29; j+=2){     //åˆ¤æ–­ä¸­æ–‡æ ‡ç‚¹ç¬¦å·
+        for (int j = 0; j < 29; j+=2){     //ÅĞ¶ÏÖĞÎÄ±êµã·ûºÅ
             if (str[i] == chinese_signs[j] && str[i + 1] == chinese_signs[j + 1]){
                 language = CHINESE;
                 return i;
@@ -40,26 +40,26 @@ std::string::size_type find_first_delimiter(std::string str, std::string::size_t
 
 unsigned float_i2f(int x) {
     unsigned int exp = 1, frac = 0, sign, round;
-    if(!x){      //0è¿”å›0
+    if(!x){      //0·µ»Ø0
         return 0;
     }
-    if(!(x ^ 1 << 31)){   //Tminç‰¹æ®Šå¤„ç†
+    if(!(x ^ 1 << 31)){   //TminÌØÊâ´¦Àí
         return 0xCF << 24;
     }
     sign = (1 << 31) & x;
-    if(sign){    //è´Ÿæ•°è½¬åŒ–ä¸ºæ­£æ•°
+    if(sign){    //¸ºÊı×ª»¯ÎªÕıÊı
         x = -x;
     }
-    while(x >> exp){    //æ‰¾åˆ°xçš„æœ€é«˜ä½çš„ä½ç½®
+    while(x >> exp){    //ÕÒµ½xµÄ×î¸ßÎ»µÄÎ»ÖÃ
         exp += 1;
     }
     frac = x << (32 - exp);    
     round = frac & 0xFF;
-    frac = (frac << 1) >> 9;    //å»æ‰æ•´æ•°éƒ¨åˆ†1ï¼Œå¾—åˆ°å°æ•°
-    if(round > 0x80 | (round == 0x80 & (frac & 1) )){   //éœ€è¦è¿›ä½çš„æƒ…å†µ
+    frac = (frac << 1) >> 9;    //È¥µôÕûÊı²¿·Ö1£¬µÃµ½Ğ¡Êı
+    if(round > 0x80 | (round == 0x80 & (frac & 1) )){   //ĞèÒª½øÎ»µÄÇé¿ö
         frac += 1;
     }
-    if(frac >> 23){   //å¦‚æœè¿›ä½å¯¼è‡´å¢åŠ 1ä½
+    if(frac >> 23){   //Èç¹û½øÎ»µ¼ÖÂÔö¼Ó1Î»
         exp += 1;
         frac = (frac << 11) >> 11;
     }
@@ -69,24 +69,24 @@ unsigned float_i2f(int x) {
 unsigned float_i2f1(int x) {
     unsigned sign = x >> 31 & 1, exp, frac, round;
     int x_exp, frac_mask;
-    if (!x) // x=0ï¼Œä¼šåœ¨æ±‚xæœ€é«˜éé›¶ä½æ—¶å‡ºé”™ï¼Œæ‰€ä»¥ç‰¹åˆ¤
+    if (!x) // x=0£¬»áÔÚÇóx×î¸ß·ÇÁãÎ»Ê±³ö´í£¬ËùÒÔÌØÅĞ
         return 0;
-    if (!(x ^ (1 << 31))) // x=TMinï¼Œä¼šåœ¨ä¸‹ä¸€æ­¥å¯¹xå–åè¿‡ç¨‹ä¸­å‡ºé”™ï¼Œæ‰€ä»¥ç‰¹åˆ¤
+    if (!(x ^ (1 << 31))) // x=TMin£¬»áÔÚÏÂÒ»²½¶ÔxÈ¡·´¹ı³ÌÖĞ³ö´í£¬ËùÒÔÌØÅĞ
         return 0xcf << 24;
     if (sign)
         x = -x;
-    // x_exp ä»£è¡¨ x çš„æœ€é«˜éé›¶ä½çš„ä½ç½®ï¼Œä¹Ÿå³ x çš„ç²¾åº¦ä½çš„æœ€é«˜ä½çš„ä½ç½®
+    // x_exp ´ú±í x µÄ×î¸ß·ÇÁãÎ»µÄÎ»ÖÃ£¬Ò²¼´ x µÄ¾«¶ÈÎ»µÄ×î¸ßÎ»µÄÎ»ÖÃ
     x_exp = 31;
     while (!(x >> x_exp))
         x_exp--;
     exp = x_exp + 0x7f; // exp+bias
-    x <<= (31 - x_exp); // å¾—åˆ°å°æ•°éƒ¨åˆ† 
+    x <<= (31 - x_exp); // µÃµ½Ğ¡Êı²¿·Ö 
     frac_mask = 0x7fffff;
-    // å³ç§» 8 ä½ï¼Œä½¿å¾—å°¾æ•°ä½å¯¹é½
+    // ÓÒÒÆ 8 Î»£¬Ê¹µÃÎ²ÊıÎ»¶ÔÆë
     frac = (x >> 8) & frac_mask;
-    round = x & 0xff; // å¾—åˆ°è¦è¢«èˆå…¥çš„å°æ•°éƒ¨åˆ†
-    frac += ((round > 0x80) || ((round == 0x80) && (frac & 1))); // ç­‰ä»·äºåˆ¤æ–­æ˜¯å¦å¤§äº128ï¼Œæˆ–è€…ç­‰äº128ä¸”æœ€ä½ä½ä¸º1ï¼Œå³å‘å¶æ•°èˆå…¥
-    // å¯¹äºèˆå…¥åè¿›ä½çš„æƒ…å†µï¼Œå› ä¸ºæœ€é«˜ä½ä»23å˜ä¸º24ï¼Œæ‰€ä»¥è¦ä¸”ä¸Šä¸€ä¸ªæ©ç ï¼Œè€Œä¸”å¢åŠ ä¸€ä½é˜¶ç 
+    round = x & 0xff; // µÃµ½Òª±»ÉáÈëµÄĞ¡Êı²¿·Ö
+    frac += ((round > 0x80) || ((round == 0x80) && (frac & 1))); // µÈ¼ÛÓÚÅĞ¶ÏÊÇ·ñ´óÓÚ128£¬»òÕßµÈÓÚ128ÇÒ×îµÍÎ»Îª1£¬¼´ÏòÅ¼ÊıÉáÈë
+    // ¶ÔÓÚÉáÈëºó½øÎ»µÄÇé¿ö£¬ÒòÎª×î¸ßÎ»´Ó23±äÎª24£¬ËùÒÔÒªÇÒÉÏÒ»¸öÑÚÂë£¬¶øÇÒÔö¼ÓÒ»Î»½×Âë
     if (frac >> 23) {
         frac &= frac_mask;
         exp += 1;
@@ -139,9 +139,18 @@ unsigned reverse(unsigned v) {
 int main()
 {
 
-    std::string str;
-    std::cin >> str;
-    std::cout << str << std::endl;
-    std::cout << str[0] << str[1] << str[3] << std::endl;
+    // std::string str;
+    // std::cin >> str;
+    // std::cout << str << std::endl;
+    // std::string sign = "(";
+    // if(str[0] == sign[0] && str[1] == sign[1]) {
+    //     std::cout << "haha" << std::endl;
+    // }
+    std::string english_signs = " ),./;:'[]`\"<>?!(|";
+    std::string chinese_signs = "£©£¬¡¯¡££¨¡®£¿¡°¡¢¡±£»¡·£º¡¾¡¿¡¤¡¶£¡";
+    std::cout << chinese_signs.length() << std::endl;
+    std::cout << english_signs.length() << std::endl;
+    std::cout << english_signs[0] << std::endl;
+    //std::cout << str[0] << str[1] << str[3] << std::endl;
     return 0;
 }

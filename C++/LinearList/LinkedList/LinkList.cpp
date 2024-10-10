@@ -52,25 +52,25 @@ void create_node(LinkList &node, ElemType e)
 ElemType::size_type find_first_delimiter(ElemType str, ElemType::size_type size, ElemType::size_type start, int &language)
 {
     std::string::size_type len = size - 1;
-    std::string english_signs = " ),./;:'[]\\`\"<>?!(";
-    std::string chinese_signs = "），’。（‘？“、”；：【】·《》！";
+    std::string english_signs = " ),./;:'[]`\"<>?!(|";
+    std::string chinese_signs = "），’。（‘？“、”；》：【】·《！";
 
-    if(start == len - 1){            //如果start是str最后一个字节
-        for(int k = 0; k < 17; k++){     
+    if(start == len){            //如果start是str最后一个字节
+        for(int k = 0; k < 18; k++){     
             if (str[len] == english_signs[k]){
                 language = ENGLISH;
-                return len - 1;
+                return len;
             }
         }
     }
     for(int i = start; i < len; i++){
-        for (int j = 0; j < 29; j+=2){     //判断中文标点符号
-            if (str[i] == chinese_signs[j] && str[i + 1] == chinese_signs[j + 1]){
+        for (int j = 0; j < 35; j+=2){     //判断中文标点符号
+            if ((str[i] == chinese_signs[j]) && (str[i + 1] == chinese_signs[j + 1])){
                 language = CHINESE;
                 return i;
             }
         }
-        for(int k = 0; k < 17; k++){     //判断英文标点符号和空格
+        for(int k = 0; k < 19; k++){     //判断英文标点符号和空格
             if (str[i] == english_signs[k]){
                 language = ENGLISH;
                 return i;
@@ -91,7 +91,7 @@ void create_List(LinkList &head, ElemType str)
     LinkList cur = head;
     std::string::size_type end = 0, start = 0, size = str.length();
     std::string word; 
-    int language = 0;
+    int language = 1;     //分隔符中文还是英文，决定下一次查找跳过一个字节还是两个
     if(size <= 0){      //字符串为空，置空链表
         clear_List(head);
         return ;
@@ -102,6 +102,10 @@ void create_List(LinkList &head, ElemType str)
             word = str.substr(start, end - start);
             LinkList newnode;           //申请动态内存，创建新节点
             create_node(newnode, word);
+            if(word == "" || word == " "){
+                start = start + language; 
+                continue;
+            }
             if(newnode == nullptr){            //申请失败
                 fprintf(stderr, "链表创建失败: CreateList Error\n");
                 destroy_List(head);

@@ -25,6 +25,7 @@ void Menu(linklist &head, linklist &pattern)
         std::cout << "*******************7.字符串单词计数******************" << std::endl; 
         std::cout << "*******************8.字符串查找**********************" << std::endl; 
         std::cout << "*******************9.合并字符串**********************" << std::endl; 
+        std::cout << "*******************10.销毁字符串**********************" << std::endl; 
         int choose = 0;
         std::cout << "输入你的选择：" ;      //选择操作
         if (!(std::cin >> choose)) {  // 如果输入不是一个整数
@@ -55,7 +56,12 @@ void Menu(linklist &head, linklist &pattern)
             std::cout << "请输入需要插入的单词, 以空格隔开 "<<std::endl;
             create_list_from_input(pattern);
             std::cout << "请输入需要插入的位置" << std::endl;
-            std::cin >> pos;
+            if(! (std::cin >> pos)){      //输入范围超过int或不是整数
+                std::cin.clear();      // 清除错误标志
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');   //忽略错误输出
+                std::cout << "---输入错误,请重新选择----" << std::endl;
+                break;
+            }
             if(pos <= 0 || list_empty(pattern)){      //输入有误
                 std::cout << "---输入错误,请重新选择----" << std::endl;
                 break;
@@ -70,8 +76,10 @@ void Menu(linklist &head, linklist &pattern)
             break;
         case 4:
             std::cout << "请输入需要删除的单词的位置和个数, 空格分隔"<<std::endl;
-            if(! (std::cin >> pos >> count) ){    //输入有误
+            if(!(std::cin >> pos >> count) ){    //输入有误
                 std::cout << "---输入错误, 请重新选择----" << std::endl;
+                std::cin.clear();      // 清除错误标志
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');   //忽略错误输出
                 break;
             } 
             clear_list(result);   //清空上一次操作的结果
@@ -123,6 +131,9 @@ void Menu(linklist &head, linklist &pattern)
             list_print(mergehead);
             destroy_list(mergehead);   //销毁合并串；
             break; 
+        case 10:
+            destroy_list(head);
+            std::cout << "删除成功" << std::endl;
         default:
             std::cout << "------选择错误，请重新选择-----" << std::endl;
             break;

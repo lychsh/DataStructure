@@ -45,7 +45,7 @@ void Menu(linklist &head, linklist &pattern)
         case 1:
             std::cout << "输入字符串, 词之间以空格或逗号隔开：" << std::endl;
             create_list_from_input(head);
-            //create_list_from_file(head, "D:\\CODE_REPOSITORY\\DataStructure2\\Homework\\homewrok1\\Chinese_Large.txt");
+            //create_list_from_file(head, "D:\\CODE_REPOSITORY\\DataStructure\\Homework\\实验01\\Chinese_Large.txt");
             break;
         case 2:
             std::cout <<"字符串如下：" << std::endl;

@@ -1,17 +1,18 @@
-#include"LinkList.h"
+#include"linklist.h"
 #include <limits>  
 
-void Menu(LinkList &head, LinkList &pattern)
+void Menu(linklist &head, linklist &pattern)
 {
-    int exit = 1;
+    int exit = 0;
     //操作用到的变量
-    LinkList mergehead = nullptr;
-    LinkList result = new LNode;
-    create_node(result, "");
+    linklist mergehead = nullptr;      //合并后的字符串
+    linklist result;       //存放操作的结果
+    create_node(result, "");     
     int pos = 0;      //插入，删除位置  
-    ElemType data;      //删除的数据,插入的单词
-    ElemType over;   
-    while(exit)
+    int count = 0;   //删除元素个数
+    elemtype data;      //删除的数据,插入的单词
+    elemtype enter;      //enter输入内容（保证随意输入程序继续）
+    while(!exit)
     {
         std::cout << "--------------请根据操作输入相应的数字--------------" << std::endl; 
         std::cout << "**********************0.退出*************************" << std::endl; 
@@ -38,45 +39,54 @@ void Menu(LinkList &head, LinkList &pattern)
         switch (choose)
         {
         case 0:
-            exit = 0;
+            exit = 1;
             std::cout << "----------------已退出----------------" << std::endl;
             break;
         case 1:
             std::cout << "输入字符串, 词之间以空格或逗号隔开：" << std::endl;
-            create_List_from_input(head);
-            //create_List_from_file(head, "D:\\CODE_REPOSITORY\\DataStructure2\\Homework\\homewrok1\\Chinese_Large.txt");
+            create_list_from_input(head);
+            //create_list_from_file(head, "D:\\CODE_REPOSITORY\\DataStructure2\\Homework\\homewrok1\\Chinese_Large.txt");
             break;
         case 2:
             std::cout <<"字符串如下：" << std::endl;
-            List_print(head);
+            list_print(head);
             break;
         case 3:
-            std::cout << "请输入需要插入的单词和位置,以空格隔开 "<<std::endl;
-            std::cin >> data >> pos;
-            if(pos <= 0 ){      //输入格式有误
-                std::cout << "---输入格式错误----" << std::endl;
+            std::cout << "请输入需要插入的单词, 以空格隔开 "<<std::endl;
+            create_list_from_input(pattern);
+            std::cout << "请输入需要插入的位置" << std::endl;
+            std::cin >> pos;
+            if(pos <= 0 || list_empty(pattern)){      //输入有误
+                std::cout << "---输入错误,请重新选择----" << std::endl;
                 break;
             }
-            if(List_insert(head, pos, data)){
+            if(list_insert_words(head, pos, pattern)){
                 std::cout << "----插入完成----" << std::endl;
+                pattern->next = nullptr;
             }
             else{
                 std::cout << "----插入失败----" << std::endl;
             }
             break;
         case 4:
-            std::cout << "请输入需要删除的单词的位置"<<std::endl;
-            std::cin >> pos;
-
-            if (List_delete(head, pos, data)){
+            std::cout << "请输入需要删除的单词的位置和个数, 空格分隔"<<std::endl;
+            if(! (std::cin >> pos >> count) ){    //输入有误
+                std::cout << "---输入错误, 请重新选择----" << std::endl;
+                break;
+            } 
+            clear_list(result);   //清空上一次操作的结果
+            if (list_delete_words(head, pos, count, result)){
                 std::cout << "-----删除成功-----" << std::endl;
+                std::cout << "删除内容为: " << std::endl;
+                list_print(result);
+                clear_list(result);    //清空删除结果
             }
             else{
                 std::cout << "------删除失败-----" << std::endl;
             }
             break; 
         case 5:
-            List_reverse(head);    //倒置字符串
+            list_reverse(head);    //倒置字符串
             break; 
         case 6:
             if (is_palindrome(head)){
@@ -87,53 +97,54 @@ void Menu(LinkList &head, LinkList &pattern)
             }
             break;
         case 7:
-            std::cout << "字符串包含的单词数为：" << List_length(head) << std::endl;
+            std::cout << "字符串包含的单词数为：" << list_length(head) << std::endl;
             break;
         case 8:
             std::cout << "请输入要查找的字符串" << std::endl;
-            create_List_from_input(pattern);
-            if(search_subList(head, pattern, result)){
+            create_list_from_input(pattern);
+            if(search_sublist(head, pattern, result)){
                 std::cout << "字符串中存在子串：" << std::endl;
-                List_print(pattern);
+                list_print(pattern);
                 std::cout << "位置依次为：" << std::endl;
-                List_print(result);
-                clear_List(result);   //清空结果
+                list_print(result);
+                clear_list(result);   //清空结果
             }
             else{
                 std::cout << "字符串中不存在子串：" << std::endl;
-                List_print(pattern);
+                list_print(pattern);
             }
             std::cout << std::endl;
             break;
         case 9:
             std::cout << "请输入要合并的字符串：" << std::endl;
-            create_List_from_input(pattern);
-            mergehead = new_merge_List(head, pattern);
+            create_list_from_input(pattern);
+            mergehead = new_merge_list(head, pattern);
             std::cout << "合并后的字符串为：" << std::endl;
-            List_print(mergehead);
+            list_print(mergehead);
+            destroy_list(mergehead);   //销毁合并串；
             break; 
         default:
             std::cout << "------选择错误，请重新选择-----" << std::endl;
             break;
         }
-        if (exit){   //避免操作完直接打印菜单，影响阅读（除退出操作外）
+        if (!exit){   //避免操作完直接打印菜单，影响阅读（除退出操作外）
             std::cout << "----请按Enter继续执行操作----" << std::endl;
-            std::getline(std::cin, over);
+            std::getline(std::cin, enter);
             std::cout << std::endl;
         }
     }
-    destroy_List(mergehead);    //销毁合并链表
-    destroy_List(result);
+    destroy_list(mergehead);    //销毁合并链表
+    destroy_list(result);
 }
 
 
 int main()
 {
-    LinkList head = nullptr;      //链表
-    LinkList pattern = nullptr;   //查找，合并的子串或字符串
+    linklist head = nullptr;      //链表
+    linklist pattern = nullptr;   //查找，合并的子串或字符串
     Menu(head, pattern);
-    destroy_List(head);
-    destroy_List(pattern);
+    destroy_list(head);
+    destroy_list(pattern);
     return 0;
 }
 

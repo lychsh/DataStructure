@@ -1,6 +1,7 @@
 /*
 实现顺序栈的ADT（抽象数据结构）
 节点包含数据域(元素为string的数组)，栈元素个数，栈容量，栈顶和栈底
+
 基于实现的顺序栈实现一些基础功能，如中缀表达式转后缀表达式，括号匹配......
 */
 
@@ -8,21 +9,29 @@
 #include<iostream>
 #include<stdbool.h>
 
-typedef std::string elemtype;
+#define STACK_INIT_SIZE 100  //顺序栈存储空间的初始分配量
+#define STACK_INCREMENT  100//固定增长分配量
+
+typedef std::string elemtype;                   //元素类型
 
 typedef struct{
-    int length;
-    int size;
-    int top, base;
-    elemtype* elems;
+    int stacksize;   //栈的容量
+    elemtype *top;   //栈顶指针
+    elemtype *base;  //栈底指针
 }stack;
 
+
+//节点比较函数
+int datacmy(elemtype e1, elemtype e2);
 
 //栈的初始化
 void init_stack(stack &S);
 
 //判断栈是否为空
-void stack_empty(stack S);
+bool stack_empty(stack S);
+
+//栈重申请内存,申请成功自动释放原内存空间
+elemtype* stack_realloc(elemtype* src, elemtype* end, size_t size);
 
 //压栈
 void push(stack &S, elemtype e);

@@ -85,7 +85,7 @@ void Menu(stack &S)
 
 int main()
 {
-    stack S = nullptr;      
+    stack S;      
     Menu(S);
     destroy_stack(S);
     return 0;

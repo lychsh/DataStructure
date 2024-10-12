@@ -17,11 +17,14 @@ typedef struct{
 }stacknode, *stack;
 
 
+//节点比较函数
+int datacmy(elemtype e1, elemtype e2);
+
 //栈的初始化
 void init_stack(stack &S);
 
 //判断栈是否为空
-void stack_empty(stack S);
+bool stack_empty(stack S);
 
 //压栈
 void push(stack &S, elemtype e);

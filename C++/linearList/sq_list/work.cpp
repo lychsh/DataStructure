@@ -1,14 +1,13 @@
-#include"stack.h"
+#include"sqlist.h"
 #include <limits>  
 
-void Menu(stack &S)
+void Menu(sqlist &L)
 {
     int exit = 0;
     //操作用到的变量
-    stack result;
-    init_stack(result); 
-    std::string enter;
-
+    int pos = 0;      //插入，删除位置  
+    elemtype data;      //删除的数据,插入的单词
+    elemtype over;   
     while(!exit)
     {
         std::cout << "--------------请根据操作输入相应的数字--------------" << std::endl; 
@@ -36,58 +35,66 @@ void Menu(stack &S)
         switch (choose)
         {
         case 0:
-            exit = 0;
+            exit = 1;
             std::cout << "----------------已退出----------------" << std::endl;
             break;
         case 1:
             std::cout << "输入字符串, 词之间以空格或逗号隔开：" << std::endl;
-            
+            create_list_from_input(L);
+            //create_list_from_file(head, "D:\\CODE_REPOSITORY\\DataStructure2\\Homework\\homewrok1\\Chinese_Large.txt");
             break;
         case 2:
             std::cout <<"字符串如下：" << std::endl;
-            
+            list_print(L);
             break;
         case 3:
             std::cout << "请输入需要插入的单词和位置,以空格隔开 "<<std::endl;
-           
-            
+            std::cin >> data >> pos;
+            if(pos <= 0 ){      //输入格式有误
+                std::cout << "---输入格式错误----" << std::endl;
+                break;
+            }
+            list_insert(L, pos, data);
+            std::cout << "----插入完成----" << std::endl;
+            break;
         case 4:
-            
+            std::cout << "请输入需要删除的单词的位置"<<std::endl;
+            std::cin >> pos;
+            list_delete(L, pos, data);
+            std::cout << "-----删除成功-----" << std::endl;
+            break; 
         case 5:
-           
             break; 
         case 6:
-            
             break;
         case 7:
-            std::cout << "字符串包含的单词数为：" << stack_length(S) << std::endl;
+            std::cout << "字符串包含的单词数为：" << list_length(L) << std::endl;
             break;
         case 8:
-            
-           
             break;
         case 9:
-            
-            break; 
+            break;
         default:
             std::cout << "------选择错误，请重新选择-----" << std::endl;
             break;
         }
-        if (exit){   //避免操作完直接打印菜单，影响阅读（除退出操作外）
+        if (!exit){   //避免操作完直接打印菜单，影响阅读（除退出操作外）
             std::cout << "----请按Enter继续执行操作----" << std::endl;
-            std::getline(std::cin, enter);
+            std::getline(std::cin, over);
             std::cout << std::endl;
         }
     }
-    destroy_stack(result);
 }
 
 
 int main()
 {
-    stack S = nullptr;      
-    Menu(S);
-    destroy_stack(S);
+    sqlist L;      //顺序表
+    L.elem = nullptr;
+    Menu(L);
+    if(L.elem){
+        destroy_list(L);
+    }
     return 0;
 }
 

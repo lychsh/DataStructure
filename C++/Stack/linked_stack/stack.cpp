@@ -107,10 +107,9 @@ void destroy_stack(stack &S)
         return ;
     }
     stack cur = S->next, _next;   //保存当前节点和下一节点
-    while(_next){
+    while(cur){
         _next = cur->next;        //更新next节点
         delete cur;                //销毁当前节点
-        cur = nullptr;
         cur = _next;              //节点后移      
     }
     delete S;

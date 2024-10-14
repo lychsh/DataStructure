@@ -1,2 +1,4 @@
 # Ignore all .exe files
 *.exe
+# 忽略Homework文件
+Homework/

@@ -11,7 +11,7 @@
 typedef std::string elemtype;
 
 //链栈节点
-typedef struct{
+typedef struct stacknode{
     elemtype data;     // 数据域
     stacknode* next;   //指针域
 }stacknode, *stack;

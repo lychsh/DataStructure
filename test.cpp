@@ -4,6 +4,7 @@
 #include<fstream>
 #define CHINESE 2
 #define ENGLISH 1
+typedef unsigned char* byte_pointer;
 
 
 std::string::size_type find_first_delimiter(std::string str, std::string::size_type size, std::string::size_type start, int &language)
@@ -136,21 +137,26 @@ unsigned reverse(unsigned v) {
     return v;
 }
 
+void show_bytes(byte_pointer start, int len)
+{ 
+    int i;
+    for (i=0; i<len; i++) 
+    printf("%.2x", start[i]); 
+} 
+
+
+
 int main()
 {
-
-    // std::string str;
-    // std::cin >> str;
-    // std::cout << str << std::endl;
-    // std::string sign = "(";
-    // if(str[0] == sign[0] && str[1] == sign[1]) {
-    //     std::cout << "haha" << std::endl;
-    // }
-    std::string english_signs = " ),./;:'[]`\"<>?!(|";
-    std::string chinese_signs = "£©£¬¡¯¡££¨¡®£¿¡°¡¢¡±£»¡·£º¡¾¡¿¡¤¡¶£¡";
-    std::cout << chinese_signs.length() << std::endl;
-    std::cout << english_signs.length() << std::endl;
-    std::cout << english_signs[0] << std::endl;
-    //std::cout << str[0] << str[1] << str[3] << std::endl;
+    std::string sign  = "¡£";
+    std::string str;
+    std::cin >> str;
+    std::cout << str;
+    if(str[1] == sign[0] && str[2] == sign[1]){
+        std::cout << "°¡" << std::endl;
+    }
+    if(str[2] == sign[0] && str[3] == sign[1]){
+        std::cout << "hajd" << std::endl;
+    }
     return 0;
 }

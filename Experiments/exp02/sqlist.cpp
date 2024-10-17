@@ -424,7 +424,7 @@ void list_print(sqlist L)
     }
     int end = L.length - 1;
     for (int i = 0; i < end; i++){    //打印前length-1个
-        std::cout << L.elem[i] << " " ;    //空格分隔
+        std::cout << L.elem[i] << std::endl;    //空格分隔
     }
     std::cout << L.elem[L.length - 1] << std::endl;    //打印最后一个，末尾不加空格
 }

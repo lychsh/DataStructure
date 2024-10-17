@@ -94,8 +94,14 @@ void list_delete(sqlist &L, int i, elemtype &e);
 --------------------------------------------初级功能-----------------------------------------------------
 */
 
-//返回从start开始第一个分隔符的位置
-elemtype::size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language);
+//返回从start开始第一个分隔符的位置,分隔符包含中文和英文
+size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language);
+
+//返回从start开始第一个匹配子串的位置，找不到返回size,有空实现kmp算法
+size_type find_first_substr(std::string str, std::string pattern, size_type start, size_type size);
+
+//返回从start开始第一个分隔符的位置，传入参数delimiters作为分隔符
+size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, std::string delimiters);
 
 //创造顺序表
 void create_list(sqlist &S, std::string str);

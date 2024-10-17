@@ -3,9 +3,11 @@
 # # 忽略homeworks文件
 # Homeworks/
 # 忽略Experiments
-Experiments/
+# Experiments/
 # # 忽略include
 # include/
 # # 忽略src
 # src/
-/test.cpp
+*.html
+*.txt
+test.cpp

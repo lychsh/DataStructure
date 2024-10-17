@@ -2,6 +2,8 @@
 #include<string.h>
 #include<iostream>
 #include<fstream>
+#include <sstream>
+#include <string>
 #define CHINESE 2
 #define ENGLISH 1
 typedef unsigned char* byte_pointer;
@@ -145,18 +147,8 @@ void show_bytes(byte_pointer start, int len)
 } 
 
 
-
 int main()
 {
-    std::string sign  = "¡£";
-    std::string str;
-    std::cin >> str;
-    std::cout << str;
-    if(str[1] == sign[0] && str[2] == sign[1]){
-        std::cout << "°¡" << std::endl;
-    }
-    if(str[2] == sign[0] && str[3] == sign[1]){
-        std::cout << "hajd" << std::endl;
-    }
+    
     return 0;
 }

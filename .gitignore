@@ -1,4 +1,11 @@
 # Ignore all .exe files
 *.exe
-# 忽略Homework文件
-Homework/
+# # 忽略homeworks文件
+# Homeworks/
+# 忽略Experiments
+Experiments/
+# # 忽略include
+# include/
+# # 忽略src
+# src/
+/test.cpp

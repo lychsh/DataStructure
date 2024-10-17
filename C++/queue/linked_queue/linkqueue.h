@@ -8,7 +8,7 @@
 
 typedef std::string elemtype;
 
-typedef struct{         //节点定义
+typedef struct queuenode{         //节点定义
     elemtype data;          //数据域
     queuenode* next;          //指针域
 }queuenode, *queueptr;

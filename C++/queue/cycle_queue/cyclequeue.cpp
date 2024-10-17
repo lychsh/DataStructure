@@ -1,4 +1,4 @@
-#include"queue.h"
+#include"cyclequeue.h"
 #include<iostream>
 
 /*
@@ -35,7 +35,7 @@ bool queue_empty(queue Q)
 {
     if(!Q.elem){     //队列不存在
         std::cerr << "Exist Error: 队列不存在" << std::endl;
-        return ;
+        return false;
     }
     if(Q.front == Q.rear){      //头尾指针相同为空
         return true;
@@ -48,7 +48,7 @@ int queue_length(queue Q)
 {
     if(!Q.elem){     //队列不存在
         std::cerr << "Exist Error: 队列不存在" << std::endl;
-        return ;
+        return -1;
     }
     return Q.length;
 }

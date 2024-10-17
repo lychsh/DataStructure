@@ -6,11 +6,7 @@
 #include<sstream>
 #include <fstream>
 
-const std::string CHINESE_SIGNS = "），’。（‘？“、”；》：【】·《！";
-const std::string ENGLISH_SIGNS = " ),./;:'[]`\"<>?!(|";
-
 typedef std::string elemtype;  //节点数据类型
-typedef std::string::size_type size_type;  //节点数据大小的类型
 
 typedef struct LNode{    //链表节点
     elemtype data;         // 数据域
@@ -30,9 +26,6 @@ int datacmp(elemtype e1, elemtype e2);
 
 //创建节点
 void create_node(linklist &node, elemtype e);
-
-//初始化链表
-void init_list(linklist &head);
 
 //销毁链表
 void destroy_list(linklist &head);
@@ -72,14 +65,8 @@ void list_print(linklist head);
 --------------------------------------------初级功能-----------------------------------------------------
 */
 
-//返回从start开始第一个分隔符的位置,分隔符包含中文和英文
-size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language);
-
-//返回从start开始第一个匹配子串的位置，找不到返回size,有空实现kmp算法
-size_type find_first_substr(std::string str, std::string pattern, size_type start, size_type size);
-
-//返回从start开始第一个分隔符的位置，传入参数delimiters作为分隔符
-size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, std::string delimiters);
+//返回从start开始第一个分隔符的位置
+elemtype::size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language);
 
 //将数据放入链表中
 void create_list(linklist &head, elemtype str);
@@ -108,11 +95,8 @@ linklist list_range_reverse(linklist head, int start, int end);
 //判断是否是回文串(词级别)
 bool is_palindrome(linklist head);
 
-//查找第一个子串的开始位置(词级别)
-size_type search_sublist(linklist head, linklist pattern, size_type start, size_type end);
-
-//查找子串，返回每个子串的位置
-bool search_sublists(linklist head, linklist pattern, linklist &result);
+//查找子串
+bool search_sublist(linklist head, linklist pattern, linklist &result);
 
 //两个非递减序列合并成一个非递减序列
 linklist new_merge_list(linklist head1, linklist head2);

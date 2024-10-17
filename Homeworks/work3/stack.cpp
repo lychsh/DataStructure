@@ -4,19 +4,11 @@
 //节点比较函数
 int datacmy(elemtype e1, elemtype e2)
 {
-    if (e1.length() > e2.length()){    //e1 > e2 返回1
+    if(e1 > e2){   
         return 1;
     }
-    else if(e1.length() < e2.length()){  //e1 < e2 返回-1
+    else if(e1 < e2){
         return -1;
-    }
-    else{
-        if (e1 > e2){
-            return 1;
-        }
-        else if (e1 < e2){
-            return -1;
-        }
     }
     return 0;     //e1 = e2 返回0
 }
@@ -31,6 +23,7 @@ void init_stack(stack &S)
     S.base = new elemtype[STACK_INIT_SIZE];    
     S.top = S.base;    //初始栈为空，栈顶指针指向栈底
     S.stacksize = STACK_INIT_SIZE;    //容量为初始容量
+    S.minindex = LLONG_MAX;      //最小元素位置初始化为长整型最大值
 }
 
 //判断栈是否为空
@@ -38,7 +31,7 @@ bool stack_empty(stack S)
 {
     if(!S.base){     //栈不存在
         std::cerr << "Don't Exist Error: 栈不存在" << std::endl;
-        return ;
+        return false;
     }
     if(S.base == S.top){    //栈顶指针指向栈底为空
         return true;
@@ -72,7 +65,7 @@ void push(stack &S, elemtype e)
         return ;
     }
     //判断是否满容，如果满容就扩容
-    if(S.top - S.base >= S.stacksize){
+    if(S.top - S.base >= S.stacksize + 1){
         elemtype* newbase = stack_realloc(S.base, S.top, S.stacksize + STACK_INCREMENT);    //重申请栈空间
         if(!newbase){      //新栈空间申请失败
             std::cerr << "CapacityExpand Error: 扩容失败" << std::endl;
@@ -81,6 +74,11 @@ void push(stack &S, elemtype e)
         S.base = newbase;                              //更新栈的栈顶指针和栈底指针
         S.top = S.base + S.stacksize;
         S.stacksize += STACK_INCREMENT;               //更新容量
+    }
+    //更新最小值
+    if(datacmy(e, S.minindex) < 0 || stack_empty(S)){     //如果压入数值小于等于最小值,更新最小值,并将最小值和e一起压入栈
+        *S.top++ = S.minindex;
+        S.minindex = e;
     }
     *S.top++ = e;   //压栈，栈顶指针上移一位
 }
@@ -96,7 +94,16 @@ void pop(stack &S, elemtype &e)
         std::cerr << "Empty Error: 栈为空" << std::endl;
         return ;
     }
-    e = *--S.top;   //返回栈顶元素,栈顶指针回退一位
+    elemtype tpe;
+    get_top(S, tpe);
+    if(tpe == S.minindex){   //如果栈顶元素是最小值       
+        e = *--S.top;   //返回栈顶元素,栈顶指针回退一位
+        S.minindex = *--S.top; 
+        S.top --;           //弹出上一个最小元素
+    }
+    else{
+        e = *--S.top;   //返回栈顶元素,栈顶指针回退一位
+    }
 }
 
 //取栈顶元素
@@ -134,7 +141,7 @@ void clear_stack(stack &S)
     }
     elemtype* cur = S.base;    //从栈底开始遍历
     while(cur < S.top){     
-        *cur++ = "";           //置空
+        *cur++ = None;           //置空
     }
     S.top = S.base;      //栈顶指针回退到栈底
 }
@@ -161,4 +168,19 @@ void stack_traverse(stack &S, void (*visit)(elemtype e))
         visit(*cur);
         cur++;                 //指针上移
     }
+}
+
+
+//返回最小值
+void get_min(stack S, elemtype &e)
+{
+    if(!S.base){     //栈不存在
+        std::cerr << "Don't Exist Error: 栈不存在" << std::endl;
+        return ;
+    }
+    if(S.top == S.base){   //栈为空
+        std::cerr << "Empty Error: 栈为空" << std::endl;
+        return ;
+    }
+    e = S.minindex;
 }

@@ -110,7 +110,7 @@ void Menu(linklist &head, linklist &pattern)
         case 8:
             std::cout << "请输入要查找的字符串" << std::endl;
             create_list_from_input(pattern);
-            if(search_sublist(head, pattern, result)){
+            if(search_sublists(head, pattern, result)){
                 std::cout << "字符串中存在子串：" << std::endl;
                 list_print(pattern);
                 std::cout << "位置依次为：" << std::endl;

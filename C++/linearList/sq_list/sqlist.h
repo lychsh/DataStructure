@@ -20,8 +20,13 @@
 #define CHINESE 2
 #define ENGLISH 1
 
+/*
+这里实现时只使用了二倍扩容,初始容量为4096, 避免重复扩容
+*/
+#define INIT_SIZE 4096
 
 typedef std::string elemtype;  // 存放单词
+typedef std::string::size_type size_type;    //顺序表元素大小的类型
 
 typedef struct{
     elemtype *elem;   //顺序表

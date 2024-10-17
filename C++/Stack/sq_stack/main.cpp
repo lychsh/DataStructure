@@ -1,4 +1,4 @@
-#include"stack.h"
+#include"sqstack.h"
 #include <limits>  
 
 void Menu(stack &S)

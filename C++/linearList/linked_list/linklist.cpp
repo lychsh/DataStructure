@@ -3,16 +3,16 @@
 #define ENGLISH 1
 
 /*
-----------------------------------------------»ù±¾²Ù×÷-----------------------------------------------------
+----------------------------------------------åŸºæœ¬æ“ä½œ-----------------------------------------------------
 */
 
-//±È½ÏÊı¾İ´óĞ¡
+//æ¯”è¾ƒæ•°æ®å¤§å°
 int datacmp(elemtype e1, elemtype e2)
 {
-    if (e1.length() > e2.length()){    //e1 > e2 ·µ»Ø1
+    if (e1.length() > e2.length()){    //e1 > e2 è¿”å›1
         return 1;
     }
-    else if(e1.length() < e2.length()){  //e1 < e2 ·µ»Ø-1
+    else if(e1.length() < e2.length()){  //e1 < e2 è¿”å›-1
         return -1;
     }
     else{
@@ -23,86 +23,105 @@ int datacmp(elemtype e1, elemtype e2)
             return -1;
         }
     }
-    return 0;     //e1 = e2 ·µ»Ø0
+    return 0;     //e1 = e2 è¿”å›0
 }
 
-//¸´ÖÆ½Úµã
+//å¤åˆ¶èŠ‚ç‚¹
 void nodecpy(linklist &dst, linklist src)
 {
     if (src == nullptr || dst == nullptr){
-        fprintf(stderr, "¸´ÖÆÊ§°Ü: NodeCopy Error\n"); 
+        fprintf(stderr, "å¤åˆ¶å¤±è´¥: NodeCopy Error\n"); 
         return ;
     }
     dst->data = src->data;
 }
 
-//´´½¨½Úµã
+//åˆ›å»ºèŠ‚ç‚¹
 void create_node(linklist &node, elemtype e)
 {
-    node = new LNode;    //ÉêÇë¶¯Ì¬ÄÚ´æ£¬´´½¨ĞÂ½Úµã
+    if(node){
+        std::cerr << "èŠ‚ç‚¹å·²å­˜åœ¨: NodeExist Error" << std::endl;
+        return ;
+    }
+    node = new LNode;    //ç”³è¯·åŠ¨æ€å†…å­˜ï¼Œåˆ›å»ºæ–°èŠ‚ç‚¹
     if(node == nullptr){
-        fprintf(stderr, "½Úµã´´½¨Ê§°Ü: CreateNode Error\n");
+        fprintf(stderr, "èŠ‚ç‚¹åˆ›å»ºå¤±è´¥: CreateNode Error\n");
         return ;
     }
     node->next = nullptr;
     if(!e.empty()){
-        node->data = e;    //¸³Öµ
+        node->data = e;    //èµ‹å€¼
     }
     
 }
 
-//Ïú»ÙÁ´±í
+//åˆå§‹åŒ–é“¾è¡¨
+void init_list(linklist &head)
+{
+    if(head){
+        std::cerr << "èŠ‚ç‚¹å·²å­˜åœ¨: NodeExist Error" << std::endl;
+        return ;
+    }
+    head = new LNode;    //ç”³è¯·åŠ¨æ€å†…å­˜ï¼Œåˆ›å»ºæ–°èŠ‚ç‚¹
+    if(head == nullptr){
+        fprintf(stderr, "èŠ‚ç‚¹åˆ›å»ºå¤±è´¥: CreateNode Error\n");
+        return ;
+    }
+    head->next = nullptr;
+}
+
+//é”€æ¯é“¾è¡¨
 void destroy_list(linklist &head)
 {
-    if (head == nullptr){    //Á´±í²»´æÔÚ
-        //fprintf(stderr, "Á´±í²»´æÔÚ: listExit Error\n"); 
+    if (head == nullptr){    //é“¾è¡¨ä¸å­˜åœ¨
+        //fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Error\n"); 
         return ;
     }
     linklist next = nullptr, cur = head->next;
     while(cur)
     {
         next = cur->next;   
-        delete cur;          //ÊÍ·Åµ±Ç°½Úµã
-        cur = next;   //½ÚµãºóÒÆ
+        delete cur;          //é‡Šæ”¾å½“å‰èŠ‚ç‚¹
+        cur = next;   //èŠ‚ç‚¹åç§»
     }
     
-    delete head;   //ÊÍ·ÅÍ·½áµã
-    head = nullptr;    //·ÀÖ¹Ö¸ÕëĞü¿Õ
+    delete head;   //é‡Šæ”¾å¤´ç»“ç‚¹
+    head = nullptr;    //é˜²æ­¢æŒ‡é’ˆæ‚¬ç©º
 }
 
-//Çå¿ÕÁ´±í£¬±£ÁôÍ·Ö¸Õë
+//æ¸…ç©ºé“¾è¡¨ï¼Œä¿ç•™å¤´æŒ‡é’ˆ
 void clear_list(linklist &head)
 {
-    if (head == nullptr){     //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Error\n"); 
+    if (head == nullptr){     //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Error\n"); 
         return ;
     }
     linklist cur = head->next;
     while(cur)
     {
-        cur->data = "";    //Çå¿ÕÊı¾İ
-        cur = cur->next;       //½ÚµãºóÒÆ
+        cur->data = "";    //æ¸…ç©ºæ•°æ®
+        cur = cur->next;       //èŠ‚ç‚¹åç§»
     }
 }
 
-//ÅĞ¶ÏÁ´±íÊÇ·ñÎª¿Õ
+//åˆ¤æ–­é“¾è¡¨æ˜¯å¦ä¸ºç©º
 bool list_empty(linklist head)
 {
-    if (head == nullptr){   //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){   //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
-    if(head->next != nullptr){     //Ö»ĞèÅĞ¶ÏÊ×Ôª½Úµã
+    if(head->next != nullptr){     //åªéœ€åˆ¤æ–­é¦–å…ƒèŠ‚ç‚¹
         return false;
     }
     return true;
 }
 
-//»ñÈ¡Á´±í³¤¶È
+//è·å–é“¾è¡¨é•¿åº¦
 int list_length(linklist head)
 {
-    if (head == nullptr){     //Á´±í²»´æÔÚ£¬·µ»Ø-1
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){     //é“¾è¡¨ä¸å­˜åœ¨ï¼Œè¿”å›-1
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return -1;
     }
     linklist cur = head->next;
@@ -110,37 +129,37 @@ int list_length(linklist head)
     while(cur)
     {
         count ++;
-        cur = cur->next;   //Ö¸ÕëºóÒÆ
+        cur = cur->next;   //æŒ‡é’ˆåç§»
     }
     return count;
 }
 
-//»ñÈ¡µÚi¸ö½Úµã
+//è·å–ç¬¬iä¸ªèŠ‚ç‚¹
 bool get_elem(linklist head, int i, elemtype &e)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
     linklist cur = head->next;
-    int pos = 0;       //¼ÇÂ¼Î»ÖÃ
-    while(cur && pos < i)    //iÔ½½ç½áÊøÑ­»·
+    int pos = 0;       //è®°å½•ä½ç½®
+    while(cur && pos < i)    //iè¶Šç•Œç»“æŸå¾ªç¯
     {
         pos ++;
-        if (pos == i){      //ÕÒµ½µÚi¸ö½Úµã
-            e = cur->data;  //·µ»ØÖµµ½eÖĞ
+        if (pos == i){      //æ‰¾åˆ°ç¬¬iä¸ªèŠ‚ç‚¹
+            e = cur->data;  //è¿”å›å€¼åˆ°eä¸­
             return true;
         }
-        cur = cur->next;        //Ö¸ÕëºóÒÆ
+        cur = cur->next;        //æŒ‡é’ˆåç§»
     }
     return false;
 }
 
-//ÕÒµ½Êı¾İÏîeµÄÎ»ÖÃ
+//æ‰¾åˆ°æ•°æ®é¡¹eçš„ä½ç½®
 int locate_elem(linklist head, elemtype e, bool (*compare)(elemtype, elemtype))
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return -1;
     }
     linklist cur = head->next;
@@ -148,62 +167,62 @@ int locate_elem(linklist head, elemtype e, bool (*compare)(elemtype, elemtype))
     while(cur)
     {
         pos ++;
-        if (!compare(e, cur->data)){   //ÕÒµ½Êı¾İÎ»ÖÃ
+        if (!compare(e, cur->data)){   //æ‰¾åˆ°æ•°æ®ä½ç½®
             return pos;
         }
-        cur = cur->next;        //Ö¸ÕëºóÒÆ
+        cur = cur->next;        //æŒ‡é’ˆåç§»
     }
-    return -1;      //ÕÒ²»µ½·µ»Ø-1
+    return -1;      //æ‰¾ä¸åˆ°è¿”å›-1
 }
 
 
-//¸ù¾İ½ÚµãÊı¾İÕÒµ½½ÚµãÇ°ÇıÊı¾İ
+//æ ¹æ®èŠ‚ç‚¹æ•°æ®æ‰¾åˆ°èŠ‚ç‚¹å‰é©±æ•°æ®
 bool prior_elem(linklist head, elemtype cur_e, elemtype &pre_e)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
     linklist cur = head->next, pre = head;
     while(cur)
     {
-        if(!datacmp(cur->data, cur_e)){     //ºÍµ±Ç°½Úµã±È½Ï
+        if(!datacmp(cur->data, cur_e)){     //å’Œå½“å‰èŠ‚ç‚¹æ¯”è¾ƒ
             pre_e = pre->data;
             return true;
         }
-        pre = cur;      //½ÚµãºóÒÆ
+        pre = cur;      //èŠ‚ç‚¹åç§»
         cur = pre->next;
     }
     return false;
 }
 
-//¸ù¾İ½ÚµãÊı¾İÕÒµ½ºó¼Ì½ÚµãÊı¾İ
+//æ ¹æ®èŠ‚ç‚¹æ•°æ®æ‰¾åˆ°åç»§èŠ‚ç‚¹æ•°æ®
 bool next_elem(linklist head, elemtype cur_e, elemtype &next_e)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
-    if(!head->next || !head->next->next){   //Á´±íÎª¿Õ»òÕßÖ»ÓĞÒ»¸ö½Úµã
+    if(!head->next || !head->next->next){   //é“¾è¡¨ä¸ºç©ºæˆ–è€…åªæœ‰ä¸€ä¸ªèŠ‚ç‚¹
         return false;
     }
     linklist cur = head->next;
     while(cur->next)
     {
-        if (!datacmp(cur_e, cur->data)){    //Èç¹ûÕÒµ½
-            next_e = cur->next->data;         //·µ»Øºó¼Ì½ÚµãÊı¾İ
+        if (!datacmp(cur_e, cur->data)){    //å¦‚æœæ‰¾åˆ°
+            next_e = cur->next->data;         //è¿”å›åç»§èŠ‚ç‚¹æ•°æ®
             return true;
         }
-        cur = cur->next;    //½ÚµãºóÒÆ
+        cur = cur->next;    //èŠ‚ç‚¹åç§»
     }
     return false;
 }
 
-//ÔÚµÚi¸ö½Úµã´¦²åÈëÔªËØ
+//åœ¨ç¬¬iä¸ªèŠ‚ç‚¹å¤„æ’å…¥å…ƒç´ 
 bool list_insert(linklist &head, int i, elemtype e)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
     linklist prev = head;
@@ -212,80 +231,80 @@ bool list_insert(linklist &head, int i, elemtype e)
     {
         if (pos == i - 1){
             linklist newnode;
-            create_node(newnode, e);   //´´½¨²åÈë½Úµã
+            create_node(newnode, e);   //åˆ›å»ºæ’å…¥èŠ‚ç‚¹
             if(newnode == nullptr){
-                fprintf(stderr, "Á´±í²åÈëÊ§°Ü: listInsert Erro\n"); 
+                fprintf(stderr, "é“¾è¡¨æ’å…¥å¤±è´¥: listInsert Erro\n"); 
                 break;
             }
-            newnode->next = prev->next;         //²åÈë½Úµã
+            newnode->next = prev->next;         //æ’å…¥èŠ‚ç‚¹
             prev->next = newnode;
             return true;
         }
-        prev = prev->next;    //½ÚµãºóÒÆ
+        prev = prev->next;    //èŠ‚ç‚¹åç§»
         pos ++;
     }
-    if(prev == nullptr){    //Ô½½ç
-        fprintf(stderr, "ÏÂ±êÔ½½ç: Index Erro\n"); 
+    if(prev == nullptr){    //è¶Šç•Œ
+        fprintf(stderr, "ä¸‹æ ‡è¶Šç•Œ: Index Erro\n"); 
     }
     return false;
 }
 
-//É¾³ıµÚi¸ö½Úµã
+//åˆ é™¤ç¬¬iä¸ªèŠ‚ç‚¹
 bool list_delete(linklist &head, int i, elemtype &e)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
-    linklist prev = head;    //ÕÒÖ±½ÓÇ°Çı
+    linklist prev = head;    //æ‰¾ç›´æ¥å‰é©±
     int pos = 0;
     while(prev->next)
     {
         if (pos == i - 1){
-            linklist dst = prev->next;   //±£´æµÚi¸ö½Úµã
-            prev->next = prev->next->next;  //¸ü¸ÄÖ¸Õë
+            linklist dst = prev->next;   //ä¿å­˜ç¬¬iä¸ªèŠ‚ç‚¹
+            prev->next = prev->next->next;  //æ›´æ”¹æŒ‡é’ˆ
             e = dst->data;
             delete dst;
             dst = nullptr;
             return true;
         }
-        prev = prev->next;        //½ÚµãºóÒÆ
+        prev = prev->next;        //èŠ‚ç‚¹åç§»
         pos ++;
     }
-    if(prev->next == nullptr){    //Ô½½ç
-        fprintf(stderr, "ÏÂ±êÔ½½ç: Index Erro\n");
+    if(prev->next == nullptr){    //è¶Šç•Œ
+        fprintf(stderr, "ä¸‹æ ‡è¶Šç•Œ: Index Erro\n");
     }
     return false;
 }
 
-//´òÓ¡Á´±í
+//æ‰“å°é“¾è¡¨
 void list_print(linklist head)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return ;
     }
     linklist cur = head->next;
     while(cur)
     {
-        std::cout << cur->data << " ";   //´òÓ¡µ¥´Ê
-        cur = cur->next;        //½ÚµãºóÒÆ
+        std::cout << cur->data << " ";   //æ‰“å°å•è¯
+        cur = cur->next;        //èŠ‚ç‚¹åç§»
     }
     std::cout << std::endl;
 }
 
 /*
---------------------------------------------³õ¼¶¹¦ÄÜ-----------------------------------------------------
+--------------------------------------------åˆçº§åŠŸèƒ½-----------------------------------------------------
 */
 
-//·µ»Ø´Óstart¿ªÊ¼µÚÒ»¸ö·Ö¸ô·ûµÄÎ»ÖÃ
-elemtype::size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language)
+//è¿”å›ä»startå¼€å§‹ç¬¬ä¸€ä¸ªåˆ†éš”ç¬¦çš„ä½ç½®
+size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language)
 {
     std::string::size_type len = size - 1;
     std::string english_signs = " ),./;:'[]`\"<>?!(|";
-    std::string chinese_signs = "£©£¬¡¯¡££¨¡®£¿¡°¡¢¡±£»¡·£º¡¾¡¿¡¤¡¶£¡";
+    std::string chinese_signs = "ï¼‰ï¼Œâ€™ã€‚ï¼ˆâ€˜ï¼Ÿâ€œã€â€ï¼›ã€‹ï¼šã€ã€‘Â·ã€Šï¼";
 
-    if(start == len){            //Èç¹ûstartÊÇstr×îºóÒ»¸ö×Ö½Ú
+    if(start == len){            //å¦‚æœstartæ˜¯stræœ€åä¸€ä¸ªå­—èŠ‚
         for(int k = 0; k < 18; k++){     
             if (str[len] == english_signs[k]){
                 language = ENGLISH;
@@ -294,13 +313,13 @@ elemtype::size_type find_first_delimiter(elemtype str, elemtype::size_type size,
         }
     }
     for(int i = start; i < len; i++){
-        for (int j = 0; j < 35; j+=2){     //ÅĞ¶ÏÖĞÎÄ±êµã·ûºÅ
+        for (int j = 0; j < 35; j+=2){     //åˆ¤æ–­ä¸­æ–‡æ ‡ç‚¹ç¬¦å·
             if ((str[i] == chinese_signs[j]) && (str[i + 1] == chinese_signs[j + 1])){
                 language = CHINESE;
                 return i;
             }
         }
-        for(int k = 0; k < 19; k++){     //ÅĞ¶ÏÓ¢ÎÄ±êµã·ûºÅºÍ¿Õ¸ñ
+        for(int k = 0; k < 19; k++){     //åˆ¤æ–­è‹±æ–‡æ ‡ç‚¹ç¬¦å·å’Œç©ºæ ¼
             if (str[i] == english_signs[k]){
                 language = ENGLISH;
                 return i;
@@ -311,18 +330,55 @@ elemtype::size_type find_first_delimiter(elemtype str, elemtype::size_type size,
 }
 
 
-//½«Êı¾İ·ÅÈëÁ´±íÖĞ
+//è¿”å›ä»startå¼€å§‹ç¬¬ä¸€ä¸ªåŒ¹é…å­ä¸²çš„ä½ç½®ï¼Œæ‰¾ä¸åˆ°è¿”å›size,æœ‰ç©ºå®ç°kmpç®—æ³•
+size_type find_first_substr(std::string str, std::string pattern, size_type start, size_type size)
+{
+    std::string::size_type len = size - 1;
+    std::string::size_type plen = pattern.length();
+    int i, j, k;
+    for(i = start; i < size; i++){
+        k = i;
+        for (j = 0; j < plen; j++){     //åˆ¤æ–­ä¸­æ–‡æ ‡ç‚¹ç¬¦å·
+            if (str[k] != pattern[j]){
+                break;
+            }
+            k++;
+        }
+        if(j == plen){
+            return i;
+        }
+    }
+    return size;
+}
+
+//è¿”å›ä»startå¼€å§‹ç¬¬ä¸€ä¸ªåˆ†éš”ç¬¦çš„ä½ç½®ï¼Œä¼ å…¥å‚æ•°delimitersä½œä¸ºåˆ†éš”ç¬¦(åªå¤„ç†è‹±æ–‡)
+size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, std::string delimiters)
+{
+    std::string::size_type len = size - 1;
+    std::string::size_type dlen = delimiters.length();
+    for(int i = start; i < size; i++){
+        for (int j = 0; j < dlen; j++){     //åˆ¤æ–­åˆ†éš”ç¬¦
+            if (str[i] == delimiters[j]){
+                return i;
+            }
+        }
+    }
+    return size;
+}
+
+
+//å°†æ•°æ®æ”¾å…¥é“¾è¡¨ä¸­
 void create_list(linklist &head, elemtype str)
 {
     if(head == nullptr){
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n");
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n");
         return ;
     }
     linklist cur = head;
     std::string::size_type end = 0, start = 0, size = str.length();
     std::string word; 
-    int language = 1;     //·Ö¸ô·ûÖĞÎÄ»¹ÊÇÓ¢ÎÄ£¬¾ö¶¨ÏÂÒ»´Î²éÕÒÌø¹ıÒ»¸ö×Ö½Ú»¹ÊÇÁ½¸ö
-    if(size <= 0){      //×Ö·û´®Îª¿Õ£¬ÖÃ¿ÕÁ´±í
+    int language = 1;     //åˆ†éš”ç¬¦ä¸­æ–‡è¿˜æ˜¯è‹±æ–‡ï¼Œå†³å®šä¸‹ä¸€æ¬¡æŸ¥æ‰¾è·³è¿‡ä¸€ä¸ªå­—èŠ‚è¿˜æ˜¯ä¸¤ä¸ª
+    if(size <= 0){      //å­—ç¬¦ä¸²ä¸ºç©ºï¼Œç½®ç©ºé“¾è¡¨
         clear_list(head);
         return ;
     }
@@ -330,40 +386,40 @@ void create_list(linklist &head, elemtype str)
         end = find_first_delimiter(str, size, start, language);
         if (end != start){
             word = str.substr(start, end - start);
-            linklist newnode;           //ÉêÇë¶¯Ì¬ÄÚ´æ£¬´´½¨ĞÂ½Úµã
+            linklist newnode;           //ç”³è¯·åŠ¨æ€å†…å­˜ï¼Œåˆ›å»ºæ–°èŠ‚ç‚¹
             create_node(newnode, word);
             if(word == "" || word == " "){
                 start = start + language; 
                 continue;
             }
-            if(newnode == nullptr){            //ÉêÇëÊ§°Ü
-                fprintf(stderr, "Á´±í´´½¨Ê§°Ü: Createlist Error\n");
+            if(newnode == nullptr){            //ç”³è¯·å¤±è´¥
+                fprintf(stderr, "é“¾è¡¨åˆ›å»ºå¤±è´¥: Createlist Error\n");
                 destroy_list(head);
                 return ;
             }
-            //½«ĞÂ½Úµã¼ÓÈëµ½Á´±íÄ©Î²
+            //å°†æ–°èŠ‚ç‚¹åŠ å…¥åˆ°é“¾è¡¨æœ«å°¾
             cur->next = newnode;
-            cur = cur->next;   //½ÚµãºóÒÆ
+            cur = cur->next;   //èŠ‚ç‚¹åç§»
         }
         start = end + language;
     }
 }
 
-//¸²¸Ç·Ç¿ÕÁ´±í
+//è¦†ç›–éç©ºé“¾è¡¨
 void cover_list(linklist &head, elemtype str)
 {
-    //Ô­Á´±í²»´æÔÚ»òÕß´æÔÚµ«Á´±íÎª¿Õ
+    //åŸé“¾è¡¨ä¸å­˜åœ¨æˆ–è€…å­˜åœ¨ä½†é“¾è¡¨ä¸ºç©º
     if(head == nullptr || head->next == nullptr){ 
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n");  
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n");  
         return ;
     }
     linklist cur = head->next;
-    linklist phead = nullptr;  //±£´æ×îºóÒ»¸ö¸²¸Ç½Úµã
+    linklist phead = nullptr;  //ä¿å­˜æœ€åä¸€ä¸ªè¦†ç›–èŠ‚ç‚¹
     std::string::size_type end = 0, start = 0, size = str.length();
     std::string word; 
     int language = 0;
 
-    if(size <= 0){      //×Ö·û´®Îª¿Õ£¬ÖÃ¿ÕÁ´±í
+    if(size <= 0){      //å­—ç¬¦ä¸²ä¸ºç©ºï¼Œç½®ç©ºé“¾è¡¨
         clear_list(head);
         return ;
     }
@@ -377,17 +433,17 @@ void cover_list(linklist &head, elemtype str)
             }
             cur->data = word;
             phead = cur;
-            cur = cur->next;   //½ÚµãºóÒÆ
+            cur = cur->next;   //èŠ‚ç‚¹åç§»
         }
         start = end + language; 
     }
-    //Èç¹ûÉÙÓÚÔ­À´µÄÁ´±í³¤¶È£¬ËõÈİ
+    //å¦‚æœå°‘äºåŸæ¥çš„é“¾è¡¨é•¿åº¦ï¼Œç¼©å®¹
     while(cur){
         destroy_list(cur);
         phead->next = nullptr;
     }
 
-    //ÊäÈëµ¥´ÊÊı³¬¹ıÁ´±í³¤¶È,À©Èİ
+    //è¾“å…¥å•è¯æ•°è¶…è¿‡é“¾è¡¨é•¿åº¦,æ‰©å®¹
     if(start < size){
         create_list(phead, str.substr(start));
     }
@@ -395,55 +451,55 @@ void cover_list(linklist &head, elemtype str)
 }
 
 
-//´Ó¼üÅÌÊäÈëÁ´±íÄÚÈİ(Î²²å)
+//ä»é”®ç›˜è¾“å…¥é“¾è¡¨å†…å®¹(å°¾æ’)
 void create_list_from_input(linklist &head)
 {
-    //ÊäÈë×Ö·û´®
+    //è¾“å…¥å­—ç¬¦ä¸²
     std::string str;     
-    if (std::getline(std::cin, str)) {  //¶ÁÈ¡³É¹¦
-        if (head != nullptr && head->next){   // Á´±í´æÔÚÇÒ²»Îª¿Õ£¬Ö±½Ó¸²¸ÇÔ­Á´±í
+    if (std::getline(std::cin, str)) {  //è¯»å–æˆåŠŸ
+        if (head != nullptr && head->next){   // é“¾è¡¨å­˜åœ¨ä¸”ä¸ä¸ºç©ºï¼Œç›´æ¥è¦†ç›–åŸé“¾è¡¨
             cover_list(head, str);
             return ;
         }
 
-        //Á´±í²»´æÔÚ£¬´´½¨ĞÂÁ´±í
+        //é“¾è¡¨ä¸å­˜åœ¨ï¼Œåˆ›å»ºæ–°é“¾è¡¨
         if(head == nullptr){
-            create_node(head, "");  //Í·½Úµã
-            if (head == nullptr){                      //ÅĞ¶ÏÁ´±íÊÇ·ñ´´½¨³É¹¦
-                fprintf(stderr, "Á´±í´´½¨Ê§°Ü: Createlist Error\n");
+            create_node(head, "");  //å¤´èŠ‚ç‚¹
+            if (head == nullptr){                      //åˆ¤æ–­é“¾è¡¨æ˜¯å¦åˆ›å»ºæˆåŠŸ
+                fprintf(stderr, "é“¾è¡¨åˆ›å»ºå¤±è´¥: Createlist Error\n");
                 return ; 
             }    
         }
         create_list(head, str);   
     }
-    // ¶ÁÈ¡Ê§°Ü
+    // è¯»å–å¤±è´¥
     else{
-        fprintf(stderr, "ÊäÈëÊ§°Ü: KeyboardInput error\n");
+        fprintf(stderr, "è¾“å…¥å¤±è´¥: KeyboardInput error\n");
         return ;
     }
 }
 
-//´ÓÎÄ¼ş¶ÁÈëÁ´±íÄÚÈİ(Î²²å)
+//ä»æ–‡ä»¶è¯»å…¥é“¾è¡¨å†…å®¹(å°¾æ’)
 void create_list_from_file(linklist &head, std::string path)
 {
-    std::ifstream file(path); // ´ò¿ªÎÄ¼şÓÃÓÚ¶ÁÈ¡
+    std::ifstream file(path); // æ‰“å¼€æ–‡ä»¶ç”¨äºè¯»å–
     if (!file.is_open()) {
-        fprintf(stderr, "ÎÄ¼ş¶ÁÈ¡Ê§°Ü: FileOpen error\n");  // Èç¹ûÎÄ¼ş²»ÄÜ´ò¿ª
+        fprintf(stderr, "æ–‡ä»¶è¯»å–å¤±è´¥: FileOpen error\n");  // å¦‚æœæ–‡ä»¶ä¸èƒ½æ‰“å¼€
         return ;
     }
-    //ÊäÈë×Ö·û´®
+    //è¾“å…¥å­—ç¬¦ä¸²
     elemtype str;     
-    if (std::getline(file, str)) {  //¶ÁÈ¡³É¹¦
-        if (head != nullptr && head->next){   // Á´±í´æÔÚÇÒ²»Îª¿Õ£¬Ö±½Ó¸²¸ÇÔ­Á´±í
+    if (std::getline(file, str)) {  //è¯»å–æˆåŠŸ
+        if (head != nullptr && head->next){   // é“¾è¡¨å­˜åœ¨ä¸”ä¸ä¸ºç©ºï¼Œç›´æ¥è¦†ç›–åŸé“¾è¡¨
             cover_list(head, str);
             return ;
         }
 
-        //Á´±í²»´æÔÚ£¬´´½¨ĞÂÁ´±í
+        //é“¾è¡¨ä¸å­˜åœ¨ï¼Œåˆ›å»ºæ–°é“¾è¡¨
         if(head == nullptr){
-            create_node(head, "");   //Í·½Úµã
-            if (head == nullptr){                      //ÅĞ¶ÏÁ´±íÊÇ·ñ´´½¨³É¹¦
-                fprintf(stderr, "Á´±í´´½¨Ê§°Ü: Createlist Error\n");
+            create_node(head, "");   //å¤´èŠ‚ç‚¹
+            if (head == nullptr){                      //åˆ¤æ–­é“¾è¡¨æ˜¯å¦åˆ›å»ºæˆåŠŸ
+                fprintf(stderr, "é“¾è¡¨åˆ›å»ºå¤±è´¥: Createlist Error\n");
                 return ; 
             }    
         }
@@ -452,22 +508,22 @@ void create_list_from_file(linklist &head, std::string path)
     file.close();
 }
 
-//ÔÚÖ¸¶¨Î»ÖÃ²åÈëÒ»¸ö»ò¶à¸öµ¥´Ê
+//åœ¨æŒ‡å®šä½ç½®æ’å…¥ä¸€ä¸ªæˆ–å¤šä¸ªå•è¯
 bool list_insert_words(linklist &head, int i, linklist words)
 {
     if (head == nullptr || words == nullptr){
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Error\n"); 
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Error\n"); 
         return false;
     }
-    linklist prev = head;     //²åÈëÎ»ÖÃÇ°Ò»¸ö½Úµã
+    linklist prev = head;     //æ’å…¥ä½ç½®å‰ä¸€ä¸ªèŠ‚ç‚¹
     int pos = 0;
-    while(prev && pos < i - 1)    //ÕÒµ½µÚi-1¸ö½Úµã
+    while(prev && pos < i - 1)    //æ‰¾åˆ°ç¬¬i-1ä¸ªèŠ‚ç‚¹
     {
-        prev = prev->next;    //½ÚµãºóÒÆ
+        prev = prev->next;    //èŠ‚ç‚¹åç§»
         pos ++;
     }
-    if(prev == nullptr){    //Ô½½ç
-        fprintf(stderr, "ÏÂ±êÔ½½ç: Index Error\n"); 
+    if(prev == nullptr){    //è¶Šç•Œ
+        fprintf(stderr, "ä¸‹æ ‡è¶Šç•Œ: Index Error\n"); 
         return false;
     }
     
@@ -475,135 +531,165 @@ bool list_insert_words(linklist &head, int i, linklist words)
     while(r_tail->next){
         r_tail = r_tail->next;
     }
-    //²åÈëµ¥´Ê
+    //æ’å…¥å•è¯
     r_tail->next = prev->next;
     prev->next = words->next;
 
     return true;
 }
 
-//ÔÚÖ¸¶¨Î»ÖÃÉ¾³ıÒ»¸ö»ò¶à¸öµ¥´Ê
+//åœ¨æŒ‡å®šä½ç½®åˆ é™¤ä¸€ä¸ªæˆ–å¤šä¸ªå•è¯
 bool list_delete_words(linklist &head, int i, int n, linklist &result)
 {   
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Error\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Error\n"); 
         return false;
     }
     linklist prev = head;    
     int pos =0;
-    while(prev->next && pos < i - 1)  //ÕÒÖ±½ÓÇ°Çı
+    while(prev->next && pos < i - 1)  //æ‰¾ç›´æ¥å‰é©±
     {
-        prev = prev->next;        //½ÚµãºóÒÆ
+        prev = prev->next;        //èŠ‚ç‚¹åç§»
         pos ++;
     }
     linklist tmp;
     linklist r_cur = result;
     while(prev->next && n--){
-        tmp = prev->next;     //±£´æÖ¸Õë
-        prev->next = prev->next->next;   //É¾³ıµ¥´Ê
-        r_cur->next = tmp;     //É¾³ıµÄµ¥´Ê·Åµ½resultÁ´±íÖĞ
+        tmp = prev->next;     //ä¿å­˜æŒ‡é’ˆ
+        prev->next = prev->next->next;   //åˆ é™¤å•è¯
+        r_cur->next = tmp;     //åˆ é™¤çš„å•è¯æ”¾åˆ°resulté“¾è¡¨ä¸­
         r_cur = tmp;
     }
-    r_cur->next = nullptr;   //·ÀÖ¹¶ÔÔ­×Ö·û´®Ôì³ÉÓ°Ïì
+    r_cur->next = nullptr;   //é˜²æ­¢å¯¹åŸå­—ç¬¦ä¸²é€ æˆå½±å“
     if(n > 0){
-        fprintf(stderr, "Ô½½ç: Index Error\n"); 
+        fprintf(stderr, "è¶Šç•Œ: Index Error\n"); 
         return false;
     }
     return true;
 }
 
-//Á´±íµ¹ÖÃ
+//é“¾è¡¨å€’ç½®
 void list_reverse(linklist &head)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return ;
     }
-    if (head->next == nullptr || head->next->next == nullptr){   //¿ÕÁ´±í»òµ¥½ÚµãÖ±½Ó·µ»Ø
+    if (head->next == nullptr || head->next->next == nullptr){   //ç©ºé“¾è¡¨æˆ–å•èŠ‚ç‚¹ç›´æ¥è¿”å›
         return ;
     } 
     linklist prev = nullptr;
     linklist cur = head->next;
-    linklist Lnext = nullptr;     //µ¹ÖÃºó×Ö·û´®µÄÊ×½Úµã
+    linklist Lnext = nullptr;     //å€’ç½®åå­—ç¬¦ä¸²çš„é¦–èŠ‚ç‚¹
     while(cur){
         Lnext = cur->next;
-        cur->next = prev;   //¸Ä±äÖ¸Õë·½Ïò
-        prev = cur;     //½ÚµãºóÒÆ
+        cur->next = prev;   //æ”¹å˜æŒ‡é’ˆæ–¹å‘
+        prev = cur;     //èŠ‚ç‚¹åç§»
         cur = Lnext;
     }
-    head->next = prev;  //Í·½áµãÖ¸ÏòĞÂµÄÊ×½Úµã
+    head->next = prev;  //å¤´ç»“ç‚¹æŒ‡å‘æ–°çš„é¦–èŠ‚ç‚¹
 
 }
 
-//½«Ä³Ò»¶Î×Ó´®µ¹ÖÃ²¢·µ»Øµ¹ÖÃºóµÄµÄĞÂ×Ö·û´®
+//å°†æŸä¸€æ®µå­ä¸²å€’ç½®å¹¶è¿”å›å€’ç½®åçš„çš„æ–°å­—ç¬¦ä¸²
 linklist list_range_reverse(linklist head, int start, int end)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return nullptr;
     }
     int pos = 1;
     linklist newhead;
     create_node(newhead, "");
     if(newhead == nullptr){
-        fprintf(stderr, "µ¹ÖÃÊ§°Ü: listReverse Erro\n"); 
+        fprintf(stderr, "å€’ç½®å¤±è´¥: listReverse Erro\n"); 
         return nullptr;
     }
 
     newhead->next = nullptr;
     linklist cur = head->next;
-    while(cur && pos < start){    //ÕÒµ½µÚstart¸ö½Úµã
+    while(cur && pos < start){    //æ‰¾åˆ°ç¬¬startä¸ªèŠ‚ç‚¹
         pos ++;
         cur = cur->next;
     }
     while(cur && pos <= end && pos >= start)
     {
-        list_insert(newhead, 1, cur->data);  //Í·²å£¬µ¹ÖÃ×Ó´®
-        cur = cur->next;        //Ö¸ÕëºóÒÆ
+        list_insert(newhead, 1, cur->data);  //å¤´æ’ï¼Œå€’ç½®å­ä¸²
+        cur = cur->next;        //æŒ‡é’ˆåç§»
         pos ++;
     }
 
     return newhead;
 }
 
-//ÅĞ¶ÏÊÇ·ñÊÇ»ØÎÄ´®(´Ê¼¶±ğ)
+//åˆ¤æ–­æ˜¯å¦æ˜¯å›æ–‡ä¸²(è¯çº§åˆ«)
 bool is_palindrome(linklist head)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
-    int length = list_length(head);      //×Ö·û´®³¤¶È
-    int start = length / 2 + 1;        //µ¹ÖÃ¿ªÊ¼Î»ÖÃ
-    linklist R_head = list_range_reverse(head, start, length);        //×Ö·û´®ºó°ë¶ÎµÄµ¹ÖÃ×Ö·û´®
+    int length = list_length(head);      //å­—ç¬¦ä¸²é•¿åº¦
+    int start = length / 2 + 1;        //å€’ç½®å¼€å§‹ä½ç½®
+    linklist R_head = list_range_reverse(head, start, length);        //å­—ç¬¦ä¸²ååŠæ®µçš„å€’ç½®å­—ç¬¦ä¸²
     linklist R_cur = R_head->next;
     linklist cur = head->next;
     for (int i = 1 ; i < start; i++){
-        if (datacmp(cur->data, R_cur->data)){      //Èç¹û²»ÏàµÈ
+        if (datacmp(cur->data, R_cur->data)){      //å¦‚æœä¸ç›¸ç­‰
             return false;
         }  
         cur = cur->next;
-        R_cur = R_cur->next;    //Ö¸ÕëºóÒÆ
+        R_cur = R_cur->next;    //æŒ‡é’ˆåç§»
     }
     return true;
 }
 
-//²éÕÒ×Ó´®
+//æŸ¥æ‰¾ç¬¬ä¸€ä¸ªå­ä¸²çš„å¼€å§‹ä½ç½®(è¯çº§åˆ«)
+size_type search_sublist(linklist head, linklist pattern, size_type start, size_type end)
+{
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
+        return false;
+    }
+    if (pattern == nullptr || pattern->next == nullptr){   //åŒ¹é…ä¸²ä¸å­˜åœ¨æˆ–è€…ä¸ºç©º
+        return false;
+    }
+    linklist left = head->next, right = head->next;    //å­—ç¬¦ä¸²å·¦å³åŒ¹é…æŒ‡é’ˆ
+    linklist subright = pattern->next;   //åŒ¹é…ä¸²å½“å‰åŒ¹é…çš„ä½ç½®
+    size_type pos = 1;       //åŒ¹é…çš„ä½ç½®
+    while(right && subright){
+        if (datacmp(right->data, subright->data)){  //ä¸ç›¸ç­‰ï¼Œheadå­—ç¬¦ä¸²åç§»ä¸€ä¸ªèŠ‚ç‚¹ï¼Œé‡æ–°åŒ¹é…å­ä¸²
+            left = left->next;
+            right = left;
+            pos ++;
+            subright = pattern->next;
+            continue;
+        }
+        if (!subright){     //å­ä¸²åŒ¹é…å®Œæˆ
+            return pos;
+        }
+        right = right->next;
+        subright = subright->next;      //èŠ‚ç‚¹åç§»
+        }
+    return 0;
+}
+
+//æŸ¥æ‰¾å­ä¸²ï¼Œè¿”å›æ¯ä¸ªå­ä¸²çš„ä½ç½®
 bool search_sublist(linklist head, linklist pattern, linklist &result)
 {
-    if (head == nullptr){      //Á´±í²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head == nullptr){      //é“¾è¡¨ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return false;
     }
-    if (pattern == nullptr || pattern->next == nullptr){   //Æ¥Åä´®²»´æÔÚ»òÕßÎª¿Õ
+    if (pattern == nullptr || pattern->next == nullptr){   //åŒ¹é…ä¸²ä¸å­˜åœ¨æˆ–è€…ä¸ºç©º
         return false;
     }
-    linklist left = head->next, right = head->next;    //×Ö·û´®×óÓÒÆ¥ÅäÖ¸Õë
-    linklist subright = pattern->next;   //Æ¥Åä´®µ±Ç°Æ¥ÅäµÄÎ»ÖÃ
-    int pos = 1, count = 0;       //Æ¥ÅäµÄÎ»ÖÃºÍ´ÎÊı
+    linklist left = head->next, right = head->next;    //å­—ç¬¦ä¸²å·¦å³åŒ¹é…æŒ‡é’ˆ
+    linklist subright = pattern->next;   //åŒ¹é…ä¸²å½“å‰åŒ¹é…çš„ä½ç½®
+    int pos = 1, count = 0;       //åŒ¹é…çš„ä½ç½®å’Œæ¬¡æ•°
     while(right && left){
         while(right && subright){
-            if (datacmp(right->data, subright->data)){  //²»ÏàµÈ£¬head×Ö·û´®ºóÒÆÒ»¸ö½Úµã£¬ÖØĞÂÆ¥Åä×Ó´®
+            if (datacmp(right->data, subright->data)){  //ä¸ç›¸ç­‰ï¼Œheadå­—ç¬¦ä¸²åç§»ä¸€ä¸ªèŠ‚ç‚¹ï¼Œé‡æ–°åŒ¹é…å­ä¸²
                 left = left->next;
                 right = left;
                 pos ++;
@@ -611,55 +697,55 @@ bool search_sublist(linklist head, linklist pattern, linklist &result)
                 continue;
             }
             right = right->next;
-            subright = subright->next;      //½ÚµãºóÒÆ
+            subright = subright->next;      //èŠ‚ç‚¹åç§»
             }
-        if (!subright){     //×Ó´®Æ¥ÅäÍê³É
+        if (!subright){     //å­ä¸²åŒ¹é…å®Œæˆ
             count++;
-            list_insert(result, count, std::to_string(pos));   //¼ÇÂ¼Î»ÖÃ
+            list_insert(result, count, std::to_string(pos));   //è®°å½•ä½ç½®
             subright = pattern->next;
         }
 
-        if(!left){     //Ö÷´®Æ¥ÅäÍê
+        if(!left){     //ä¸»ä¸²åŒ¹é…å®Œ
            break;
         }
-        left = left->next;     //Ö÷´®ºóÒÆ¼ÌĞøÆ¥Åä
+        left = left->next;     //ä¸»ä¸²åç§»ç»§ç»­åŒ¹é…
         right = left;
         pos ++;
             
     }
-    if(count > 0){    //ÖÁÉÙÆ¥ÅäÒ»´Î
+    if(count > 0){    //è‡³å°‘åŒ¹é…ä¸€æ¬¡
         return true;
     }
     return false;
 }
 
-//head2ºÏ²¢µ½head1£¬±£³Ö·Çµİ¼õ
+//head2åˆå¹¶åˆ°head1ï¼Œä¿æŒéé€’å‡
 void merge_list(linklist &head1, linklist head2)
 {
-    if (head1 == nullptr || head2 == nullptr){      //Á´±í1»ò2²»´æÔÚ
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Erro\n"); 
+    if (head1 == nullptr || head2 == nullptr){      //é“¾è¡¨1æˆ–2ä¸å­˜åœ¨
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Erro\n"); 
         return ;
     }
 
-    linklist next1 = head1->next;    //Á´±í1Î²½áµã
-    linklist next2 = head2->next;     //Á´±í2Î²½áµã
-    linklist cur = head1;               //ĞÂÁ´±íÍ·½áµã
+    linklist next1 = head1->next;    //é“¾è¡¨1å°¾ç»“ç‚¹
+    linklist next2 = head2->next;     //é“¾è¡¨2å°¾ç»“ç‚¹
+    linklist cur = head1;               //æ–°é“¾è¡¨å¤´ç»“ç‚¹
     while(next1 && next2){
-        if(datacmp(next1->data, next2->data) <= 0){      //tail1Ğ¡ÓÚµÈÓÚtail2, Á´±í1½Úµã¼ÓÈëĞÂÁ´±í
+        if(datacmp(next1->data, next2->data) <= 0){      //tail1å°äºç­‰äºtail2, é“¾è¡¨1èŠ‚ç‚¹åŠ å…¥æ–°é“¾è¡¨
             cur->next = next1;
             cur = next1;
             next1 = next1->next;
         }
-        else{                               //tail2Ğ¡ÓÚtail1,Á´±í2½Úµã¼ÓÈëĞÂÁ´±í
+        else{                               //tail2å°äºtail1,é“¾è¡¨2èŠ‚ç‚¹åŠ å…¥æ–°é“¾è¡¨
             cur->next = next2;
             cur = next2;
             next2 = next2->next;
         }
     }
-    if(next1){      //Èç¹ûhead1ĞòÁĞÎ´½áÊø
+    if(next1){      //å¦‚æœhead1åºåˆ—æœªç»“æŸ
         cur->next = next1;
     }
-    if (next2){      //Èç¹ûhead2ĞòÁĞÎ´½áÊø
+    if (next2){      //å¦‚æœhead2åºåˆ—æœªç»“æŸ
         cur->next = next2;
     }
 }
@@ -668,121 +754,121 @@ void merge_list(linklist &head1, linklist head2)
 
 /*
 
-//Á½¸ö·Çµİ¼õĞòÁĞºÏ²¢³ÉÒ»¸öĞÂµÄ·Çµİ¼õĞòÁĞ,²»ÊÍ·ÅÔ­À´Á½¸öÁ´±í¿Õ¼ä,ºÏ²¢ºóÖ»ĞèÒªÊÍ·ÅÁ½¸öÁ´±íµÄÍ·½áµã
+//ä¸¤ä¸ªéé€’å‡åºåˆ—åˆå¹¶æˆä¸€ä¸ªæ–°çš„éé€’å‡åºåˆ—,ä¸é‡Šæ”¾åŸæ¥ä¸¤ä¸ªé“¾è¡¨ç©ºé—´,åˆå¹¶ååªéœ€è¦é‡Šæ”¾ä¸¤ä¸ªé“¾è¡¨çš„å¤´ç»“ç‚¹
 void NewMergelist(linklist &head1, linklist head2)
 {
     
     if(head1 == nullptr || head2 == nullptr){
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Error\n"); 
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Error\n"); 
         return nullptr;
     }
 
     linklist Mergehead;
     CreateNode(Mergehead, "");
     if (Mergehead == nullptr){
-        fprintf(stderr, "ºÏ²¢Ê§°Ü: Mergelist Error\n"); 
+        fprintf(stderr, "åˆå¹¶å¤±è´¥: Mergelist Error\n"); 
         return nullptr;
     }
     Mergehead->next = nullptr;
     
-    //Á´±í1/2¶¼´æÔÚ
-    linklist next1 = head1->next;    //Á´±í1Î²½áµã
+    //é“¾è¡¨1/2éƒ½å­˜åœ¨
+    linklist next1 = head1->next;    //é“¾è¡¨1å°¾ç»“ç‚¹
     linklist next2 = head2->next;
     linklist cur = Mergehead;
     while(next1 && next2)
     {
-        if(compare(next1->data, next2->data) <= 0){      //tail1Ğ¡ÓÚµÈÓÚtail2,Á´±í1½Úµã¼ÓÈëĞÂÁ´±í
+        if(compare(next1->data, next2->data) <= 0){      //tail1å°äºç­‰äºtail2,é“¾è¡¨1èŠ‚ç‚¹åŠ å…¥æ–°é“¾è¡¨
             cur->next = next1;
             cur = next1;
             next1 = next1->next;
         }
-        else{                               //tail2Ğ¡ÓÚtail1,Á´±í2½Úµã¼ÓÈëĞÂÁ´±í
+        else{                               //tail2å°äºtail1,é“¾è¡¨2èŠ‚ç‚¹åŠ å…¥æ–°é“¾è¡¨
             cur->next = next2;
             cur = next2;
             next2 = next2->next;
         }
     }
-    if(next1){      //Èç¹ûhead1ĞòÁĞÎ´½áÊø
+    if(next1){      //å¦‚æœhead1åºåˆ—æœªç»“æŸ
         cur->next = next1;
     }
-    if (next2){      //Èç¹ûhead2ĞòÁĞÎ´½áÊø
+    if (next2){      //å¦‚æœhead2åºåˆ—æœªç»“æŸ
         cur->next = next2;
     }
 }
 */
 
 
-//Á½¸ö·Çµİ¼õĞòÁĞºÏ²¢³ÉÒ»¸öĞÂµÄ·Çµİ¼õĞòÁĞ,ºÏ²¢ºóĞèÊÍ·ÅÁ½¸öÁ´±í¿Õ¼ä
+//ä¸¤ä¸ªéé€’å‡åºåˆ—åˆå¹¶æˆä¸€ä¸ªæ–°çš„éé€’å‡åºåˆ—,åˆå¹¶åéœ€é‡Šæ”¾ä¸¤ä¸ªé“¾è¡¨ç©ºé—´
 linklist new_merge_list(linklist head1, linklist head2)
 {   
-    if(head1 == nullptr || head2 == nullptr){       //ºÏ²¢²»´æÔÚµÄÁ´±í·Ç·¨
-        fprintf(stderr, "Á´±í²»´æÔÚ: listExit Error\n"); 
+    if(head1 == nullptr || head2 == nullptr){       //åˆå¹¶ä¸å­˜åœ¨çš„é“¾è¡¨éæ³•
+        fprintf(stderr, "é“¾è¡¨ä¸å­˜åœ¨: listExit Error\n"); 
         return nullptr;
     }
 
-    linklist mergehead;     //ÉêÇëÊ§°Ü
+    linklist mergehead;     //ç”³è¯·å¤±è´¥
     create_node(mergehead, "");
     if (mergehead == nullptr){
-        fprintf(stderr, "ºÏ²¢Ê§°Ü: Mergelist Error\n"); 
+        fprintf(stderr, "åˆå¹¶å¤±è´¥: Mergelist Error\n"); 
         return nullptr;
     }
     
-    linklist next1 = head1->next;    //Á´±í1Î²½áµã
+    linklist next1 = head1->next;    //é“¾è¡¨1å°¾ç»“ç‚¹
     linklist next2 = head2->next;
     linklist cur = mergehead;
-    int pos = 1;   //²åÈëµÄÎ»ÖÃ
+    int pos = 1;   //æ’å…¥çš„ä½ç½®
     while(next1 && next2)
     {
-        if(datacmp(next1->data, next2->data) <= 0){      //tail1Ğ¡ÓÚµÈÓÚtail2,,Á´±í1½Úµã¼ÓÈëĞÂÁ´±í
+        if(datacmp(next1->data, next2->data) <= 0){      //tail1å°äºç­‰äºtail2,,é“¾è¡¨1èŠ‚ç‚¹åŠ å…¥æ–°é“¾è¡¨
             linklist newnode;
             create_node(newnode, next1->data);
             if (newnode == nullptr){
-                fprintf(stderr, "ºÏ²¢Ê§°Ü: Mergelist Error\n"); 
-                destroy_list(mergehead);    //Ïú»Ù£¬±ÜÃâÄÚ´æĞ¹Â¶
+                fprintf(stderr, "åˆå¹¶å¤±è´¥: Mergelist Error\n"); 
+                destroy_list(mergehead);    //é”€æ¯ï¼Œé¿å…å†…å­˜æ³„éœ²
                 return nullptr;
             }
-            cur->next = newnode;    //ĞÂ½Úµã¼ÓÈëºÏ²¢Á´±í
-            cur = cur->next;        //ºóÒÆÖ¸Õë
+            cur->next = newnode;    //æ–°èŠ‚ç‚¹åŠ å…¥åˆå¹¶é“¾è¡¨
+            cur = cur->next;        //åç§»æŒ‡é’ˆ
             next1 = next1->next;
         }
-        else{                               //tail2Ğ¡ÓÚtail1,Á´±í2½Úµã¼ÓÈëĞÂÁ´±í
+        else{                               //tail2å°äºtail1,é“¾è¡¨2èŠ‚ç‚¹åŠ å…¥æ–°é“¾è¡¨
             linklist newnode;
             create_node(newnode, next2->data);
             if (newnode == nullptr){
-                fprintf(stderr, "ºÏ²¢Ê§°Ü: Mergelist Error\n"); 
-                destroy_list(mergehead);    //Ïú»Ù£¬±ÜÃâÄÚ´æĞ¹Â¶
+                fprintf(stderr, "åˆå¹¶å¤±è´¥: Mergelist Error\n"); 
+                destroy_list(mergehead);    //é”€æ¯ï¼Œé¿å…å†…å­˜æ³„éœ²
                 return nullptr;
             }
 
-            cur->next = newnode;    //ĞÂ½Úµã¼ÓÈëºÏ²¢Á´±í
-            cur = cur->next;        //ºóÒÆÖ¸Õë
+            cur->next = newnode;    //æ–°èŠ‚ç‚¹åŠ å…¥åˆå¹¶é“¾è¡¨
+            cur = cur->next;        //åç§»æŒ‡é’ˆ
             next2 = next2->next;
         }
     }
-    while(next1){      //Èç¹ûhead1ĞòÁĞÎ´½áÊø
+    while(next1){      //å¦‚æœhead1åºåˆ—æœªç»“æŸ
          linklist newnode;
         create_node(newnode, next1->data);
         if (newnode == nullptr){
-            fprintf(stderr, "ºÏ²¢Ê§°Ü: Mergelist Error\n"); 
-            destroy_list(mergehead);    //Ïú»Ù£¬±ÜÃâÄÚ´æĞ¹Â¶
+            fprintf(stderr, "åˆå¹¶å¤±è´¥: Mergelist Error\n"); 
+            destroy_list(mergehead);    //é”€æ¯ï¼Œé¿å…å†…å­˜æ³„éœ²
             return nullptr;
         }
 
-        cur->next = newnode;    //ĞÂ½Úµã¼ÓÈëºÏ²¢Á´±í
-        cur = cur->next;        //ºóÒÆÖ¸Õë
+        cur->next = newnode;    //æ–°èŠ‚ç‚¹åŠ å…¥åˆå¹¶é“¾è¡¨
+        cur = cur->next;        //åç§»æŒ‡é’ˆ
         next1 = next1->next;
     }
-    while(next2){      //Èç¹ûhead2ĞòÁĞÎ´½áÊø
+    while(next2){      //å¦‚æœhead2åºåˆ—æœªç»“æŸ
         linklist newnode;
         create_node(newnode, next2->data);
         if (newnode == nullptr){
-            fprintf(stderr, "ºÏ²¢Ê§°Ü: Mergelist Error\n"); 
-            destroy_list(mergehead);    //Ïú»Ù£¬±ÜÃâÄÚ´æĞ¹Â¶
+            fprintf(stderr, "åˆå¹¶å¤±è´¥: Mergelist Error\n"); 
+            destroy_list(mergehead);    //é”€æ¯ï¼Œé¿å…å†…å­˜æ³„éœ²
             return nullptr;
         }
 
-        cur->next = newnode;    //ĞÂ½Úµã¼ÓÈëºÏ²¢Á´±í
-        cur = cur->next;        //ºóÒÆÖ¸Õë
+        cur->next = newnode;    //æ–°èŠ‚ç‚¹åŠ å…¥åˆå¹¶é“¾è¡¨
+        cur = cur->next;        //åç§»æŒ‡é’ˆ
         next2 = next2->next;
     }
     return mergehead;

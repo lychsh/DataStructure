@@ -53,6 +53,9 @@ bool capacity_reduce(sqlist &L);
 //顺序表初始化
 void init_list(sqlist &L);
 
+//指定大小初始化
+void init_list(sqlist &L, size_t size);
+
 //打印顺序表
 void list_print(sqlist L);
 

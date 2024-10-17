@@ -215,6 +215,24 @@ void init_list(sqlist &L)
     L.listsize = INIT_SIZE;    //容量设置为初始容量4096
 }
 
+//指定大小初始化
+void init_list(sqlist &L, size_t size)
+{
+    //顺序表已存在
+    if(L.elem){
+        std::cerr << "Exist Error: 顺序表已存在" << std::endl;
+        return ;
+    }
+    L.elem = new elemtype[size];
+    if(!L.elem){     //判断指针是否有效
+        std::cerr << "Init Error: 顺序表初始化失败" << std::endl;
+        return ;
+    } 
+    //申请成功，初始化顺序表
+    L.length = 0;   //表长初始为0
+    L.listsize = size;    //容量设置为初始容量size
+}
+
 //顺序表销毁
 void destroy_list(sqlist &L)
 {
@@ -360,6 +378,11 @@ void list_insert(sqlist &L, int i, elemtype e)
             std::cerr << "Expand Error: 扩容失败" << std::endl;
             return ;
         }
+    }
+    if(i == L.length + 1){    //如果插入元素为表尾,无需移动元素
+        L.elem[L.length] = e;
+        L.length ++;
+        return ;
     }
     //无需扩容或扩容成功，插入元素
     elemtype* q = L.elem + i - 1;

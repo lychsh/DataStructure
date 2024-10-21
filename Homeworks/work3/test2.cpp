@@ -185,7 +185,7 @@ void dequeue(stack &S1, stack &S2, elemtype &e)
         return ;
     }
     elemtype tmp;
-    if(stack_empty(S2) && !stack_empty(S1)){  //S1非空，S2空，先将S1元素弹出，压入S2
+    if(stack_empty(S2)){  //S1非空，S2空，先将S1元素弹出，压入S2
         while(!stack_empty(S1)){
             pop(S1, tmp);
             push(S2, tmp);

@@ -373,6 +373,7 @@ void list_insert(sqlist &L, int i, elemtype e)
         elemtype* newelem =  list_realloc(L.elem, L.length, L.listsize * 2);
         if(newelem){     //申请成功，更新链表
             L.elem = newelem;
+            L.listsize = L.listsize * 2;
         }
         else{
             std::cerr << "Expand Error: 扩容失败" << std::endl;

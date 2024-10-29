@@ -8,24 +8,24 @@
 //数据比较函数
 int datacompare(elemtype e1, elemtype e2)
 {
-     if (e1.length() > e2.length()){    //e1 > e2 返回1
+     if (e1.tag.length() > e2.tag.length()){    //e1 > e2 返回1
         return 1;
     }
-    else if(e1.length() < e2.length()){  //e1 < e2 返回-1
+    else if(e1.tag.length() < e2.tag.length()){  //e1 < e2 返回-1
         return -1;
     }
     else{
-        if (e1 > e2){
+        if (e1.tag > e2.tag){
             return 1;
         }
-        else if (e1 < e2){
+        else if (e1.tag < e2.tag){
             return -1;
         }
     }
     return 0;     //e1 = e2 返回0
 }
 
-//链表重申请内存,申请成功自动释放原内存空间
+//顺序表重申请内存,申请成功自动释放原内存空间
 elemtype* list_realloc(elemtype* src, elemtype* end, size_t size)
 {
     //顺序表不存在
@@ -34,7 +34,7 @@ elemtype* list_realloc(elemtype* src, elemtype* end, size_t size)
         return nullptr;
     }
     elemtype* newbase = new elemtype[size];
-    if(!newbase){      //新链表空间申请失败
+    if(!newbase){      //新表空间申请失败
         std::cerr << "CapacityExpand Error: 扩容失败" << std::endl;
         return nullptr;
     } 
@@ -42,13 +42,13 @@ elemtype* list_realloc(elemtype* src, elemtype* end, size_t size)
     while(cur <= end){     
         *new_cur++ = *cur++;    //复制内存
     }
-    delete [] src;     //释放原链表空间
+    delete [] src;     //释放原表空间
     src = nullptr;
 
-    return newbase;     //返回新链表数据域
+    return newbase;     //返回新表数据域
 }
 
-//链表重申请内存,将src指向的空间复制长度为len的内存复制到新空间，申请成功自动释放原内存空间
+//顺序表重申请内存,将src指向的空间复制长度为len的内存复制到新空间，申请成功自动释放原内存空间
 elemtype* list_realloc(elemtype* src, int len, size_t size)
 {
     //顺序表不存在
@@ -57,145 +57,20 @@ elemtype* list_realloc(elemtype* src, int len, size_t size)
         return nullptr;
     }
     elemtype* newbase = new elemtype[size];
-    if(!newbase){      //新链表空间申请失败
+    if(!newbase){      //新顺序表空间申请失败
         std::cerr << "CapacityExpand Error: 扩容失败" << std::endl;
         return nullptr;
     } 
-    elemtype *cur = src, *new_cur = newbase;    //遍历链表
+    elemtype *cur = src, *new_cur = newbase;    //遍历顺序表
     for(int i = 0; i < len; i++){
         newbase[i] = src[i];
     }
-    delete [] src;     //释放原链表空间
+    delete [] src;     //释放原顺序表空间
     src = nullptr;
 
-    return newbase;     //返回新链表数据域
+    return newbase;     //返回新顺序表数据域
 }
 
-
-//表满扩容
-bool capacity_expansion(sqlist &L)
-{
-    //顺序表不存在
-    if(L.elem == nullptr){
-        std::cerr << "Exist Error: 顺序表不存在" << std::endl;
-        return false;
-    }
-    if (L.length < L.listsize){    //未满无需扩容
-        return true;
-    }
-    if (L.length >= MAX_INCREMENT){   //大于最大内存允许
-        std::cerr << "Memory Overflow: 内存溢出" << std::endl;
-        return false;
-    }
-    //判断容量，决定扩容方式
-
-    if (L.listsize >= MAX_DOUBLE_INCREMENT){       //大于最大倍增容量，固定扩增
-        if (L.listsize + FIXED_INCREMENT > MAX_INCREMENT){ //扩容后大于最大允许容量，设置为最大允许容量
-            elemtype* newL = (elemtype *)list_realloc(L.elem, L.elem + L.length - 1, MAX_INCREMENT);
-            if(newL != nullptr){       //申请内存成功,更新指针
-                L.elem = newL;
-                L.listsize = MAX_INCREMENT;
-                return true;
-            }
-            else{
-                std::cerr << "Expansion Error: 扩容失败" << std::endl;
-                return false;
-            }
-        }
-        else{           //扩容后小于最大允许容量，增加固定分配容量
-            elemtype* newL = (elemtype *)list_realloc(L.elem, L.elem + L.length - 1, L.listsize + FIXED_INCREMENT);
-            if(newL != nullptr){       //申请内存成功,更新指针
-                L.elem = newL;
-                L.listsize += FIXED_INCREMENT;
-                return true;
-            }
-            else{
-                std::cerr << "Expansion Error: 扩容失败" << std::endl;
-                return false;
-            }
-        }
-    }
-    else if (L.listsize >= LIST_INIT_SIZE){     //达到初始分配量，倍增扩容
-        elemtype* newL = (elemtype *)list_realloc(L.elem, L.elem + L.length - 1, L.listsize * MULTIPLIER_FACTOR);
-            if(newL != nullptr){       //申请内存成功,更新指针
-                L.elem = newL;
-                L.listsize *= MULTIPLIER_FACTOR;
-                return true;
-            }
-            else{
-                std::cerr << "Expansion Error: 扩容失败" << std::endl;
-                return false;
-            }
-    }
-    return false;
-}
-
-//空间利用率过低，缩容
-bool capacity_reduce(sqlist &L)
-{
-    //顺序表不存在
-    if(L.elem == nullptr){
-        std::cerr << "Exist Error: 顺序表不存在" << std::endl;
-        return false;
-    }
-    if (L.listsize == LIST_INIT_SIZE){
-        return true;
-    }
-    //表长小于初始分配容量且表容量大于初始分配容量，表容量设置为初始分配容量
-    if (L.length < LIST_INIT_SIZE && L.listsize > LIST_INIT_SIZE){    
-        elemtype* newL = (elemtype *)list_realloc(L.elem, L.elem + L.length - 1, LIST_INIT_SIZE);
-        if(newL != nullptr){       //申请内存成功,更新指针
-            L.elem = newL;
-            L.listsize = LIST_INIT_SIZE;
-            return true;
-        }
-        else{
-            std::cerr << "Reduce Error: 缩容失败" << std::endl;
-            return false;
-        }
-    }
-    // 表长小于表容量一半,表容量大于初始分配容量的2倍，小于最大倍增容量,表容量减半
-    else if (L.length < L.listsize / 2 && L.listsize > LIST_INIT_SIZE * MULTIPLIER_FACTOR && L.listsize <= MAX_DOUBLE_INCREMENT){
-        elemtype* newL = (elemtype *)list_realloc(L.elem, L.elem + L.length - 1, L.listsize / 2);
-        if(newL != nullptr){       //申请内存成功,更新指针
-            L.elem = newL;
-            L.listsize /= 2;
-            return true;
-        }
-        else{
-            std::cerr << "Reduce Error: 缩容失败" << std::endl;
-            return false;
-        } 
-    }
-    //表容量大于最大倍增容量，表容量设置为最大倍增容量
-    else if (L.listsize > MAX_DOUBLE_INCREMENT && L.length < MAX_DOUBLE_INCREMENT){
-        elemtype* newL = (elemtype *)list_realloc(L.elem, L.elem + L.length - 1, MAX_DOUBLE_INCREMENT);
-        if(newL != nullptr){       //申请内存成功,更新指针
-            L.elem = newL;
-            L.listsize = MAX_DOUBLE_INCREMENT;
-            return true;
-        }
-        else{
-            std::cerr << "Reduce Error: 缩容失败" << std::endl;
-            return false;
-        }    
-
-    }  
-    //表长大于最大倍增容量，表容量大于表长+固定分配容量，表容量减去固定分配容量
-    else if(L.length < L.listsize - FIXED_INCREMENT && L.length > MAX_DOUBLE_INCREMENT && L.listsize < MAX_INCREMENT){
-        elemtype* newL = (elemtype *)list_realloc(L.elem, L.elem + L.length - 1, L.listsize - FIXED_INCREMENT);
-        if(newL != nullptr){       //申请内存成功,更新指针
-            L.elem = newL;
-            L.listsize -= FIXED_INCREMENT;
-            return true;
-        }
-        else{
-            std::cerr << "Reduce Error: 缩容失败" << std::endl;
-            return false;
-        }    
-    }
-    return false;
-}
 
 //顺序表初始化
 void init_list(sqlist &L)
@@ -256,7 +131,8 @@ void clear_list(sqlist &L)
         return ;
     }
     for(int i = 0; i < L.length; i++){   //清空内容
-        L.elem[i] = "";
+        L.elem[i].tag = "";
+        L.elem[i].type = None;
     }
     L.length = 0;    //长度置为0
 
@@ -425,9 +301,9 @@ void list_print(sqlist L)
     }
     int end = L.length - 1;
     for (int i = 0; i < end; i++){    //打印前length-1个
-        std::cout << L.elem[i] << std::endl;    //空格分隔
+        std::cout << L.elem[i].tag << std::endl;    //空格分隔
     }
-    std::cout << L.elem[L.length - 1] << std::endl;    //打印最后一个，末尾不加空格
+    std::cout << L.elem[L.length - 1].tag << std::endl;    //打印最后一个，末尾不加空格
 }
 
 /*
@@ -435,9 +311,9 @@ void list_print(sqlist L)
 */
 
 //返回从start开始第一个分隔符的位置
-size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language)
+size_t find_first_delimiter(std::string str, size_t size, size_t start, int &language)
 {
-    std::string::size_type len = size - 1;
+    size_t len = size - 1;
     std::string english_signs = " ),./;:'[]`\"<>?!(|";
     std::string chinese_signs = "），’。（‘？“、”；》：【】·《！";
 
@@ -468,10 +344,10 @@ size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype:
 
 
 //返回从start开始第一个匹配子串的位置，找不到返回size,有空实现kmp算法
-size_type find_first_substr(std::string str, std::string pattern, size_type start, size_type size)
+size_t find_first_substr(std::string str, std::string pattern, size_t start, size_t size)
 {
-    std::string::size_type len = size - 1;
-    std::string::size_type plen = pattern.length();
+    
+    size_t plen = pattern.length();
     int i, j, k;
     for(i = start; i < size; i++){
         k = i;
@@ -489,10 +365,10 @@ size_type find_first_substr(std::string str, std::string pattern, size_type star
 }
 
 //返回从start开始第一个分隔符的位置，传入参数delimiters作为分隔符(只处理英文)
-size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, std::string delimiters)
+size_t find_first_delimiter(std::string str, size_t size, size_t start, std::string delimiters)
 {
-    std::string::size_type len = size - 1;
-    std::string::size_type dlen = delimiters.length();
+    size_t len = size - 1;
+    size_t dlen = delimiters.length();
     for(int i = start; i < size; i++){
         for (int j = 0; j < dlen; j++){     //判断分隔符
             if (str[i] == delimiters[j]){
@@ -501,139 +377,4 @@ size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype:
         }
     }
     return size;
-}
-
-
-//从字符串str切词结果创造顺序表
-void create_list(sqlist &L, std::string str)
-{
-    //顺序表不存在
-    if(!L.elem){
-        std::cerr << "Exist Error: 顺序表不存在" << std::endl;
-        return ;
-    }
-    
-    std::string::size_type end = 0, start = 0, size = str.length();
-    std::string word; 
-    int language = 1;     //分隔符中文还是英文，决定下一次查找跳过一个字节还是两个
-    int count = 0;   //切词个数
-    if(size <= 0){      //字符串为空，置空顺序表
-        clear_list(L);
-        return ;
-    }
-    while(start <= (size - 1)){
-        end = find_first_delimiter(str, size, start, language);
-        if (end != start){
-            word = str.substr(start, end - start);       //切词
-            if(word == "" || word == " "){     //无效词跳过
-                start = start + language; 
-                continue;
-            }
-            count ++;     //词数+1
-            list_insert(L, count, word);   //插入顺序表
-        }
-        start = end + language;
-    }
-}
-
-//覆盖原字符串
-void cover_list(sqlist &L, elemtype str)
-{
-    //原链表不存在或者存在但链表为空
-    if(!L.elem || L.length == 0){
-        std::cerr << "Exist Error: 顺序表不存在" << std::endl;
-        return ;
-    }
-    int count = 1;   //切词个数
-    std::string::size_type end = 0, start = 0, size = str.length();
-    std::string word;    //切词结果
-    int language = 0;
-    int length = L.length;  //原表长
-
-    if(size <= 0){      //字符串为空，置空链表
-        clear_list(L);
-        return ;
-    }
-    while(start <= size - 1 && count < L.listsize){       //字符串未切完并且链表有空位  
-        end = find_first_delimiter(str, size, start, language);
-        if (end != start){
-            word = str.substr(start, end - start);       //切词
-            if(word == "" || word == " "){     //无效词跳过
-                start = start + language; 
-                continue;
-            }
-            if(count >= L.listsize){    //链表已满，剩余词插入到链表末尾
-                list_insert(L, count, word);   //插入顺序表
-            }
-            else{
-                L.elem[count - 1] = word;
-            }
-            count ++;     //词数+1
-        }
-        start = end + language; 
-    }
-    L.length = count;
-    //如果少于原来的顺序表长度，多余部分清空
-    if(start >= size){
-        for(int i = count ; i < length - 1; i++){
-            L.elem[i] = "";
-        }
-    }
-}
-
-//从键盘输入链表内容(尾插)
-void create_list_from_input(sqlist &L)
-{
-    //输入字符串
-    std::string str;     
-    if (std::getline(std::cin, str)) {  //读取成功
-        if (L.elem != nullptr || L.length > 0){   // 顺序表存在且不为空，直接覆盖原链表
-            cover_list(L, str);
-            return ;
-        }
-
-        //顺序表不存在，创建顺序表
-        if(L.elem == nullptr){
-            init_list(L);    //初始化顺序表
-            if (L.elem == nullptr){                      //判断顺序表是否创建成功
-                std::cerr << "Input Error: 创建失败" << std::endl;
-                return ; 
-            }    
-        }
-        create_list(L, str);   
-    }
-    // 读取失败
-    else{
-        std::cerr << "KeyboardInput error ：输入失败: " << std::endl;
-        return ;
-    }
-}
-
-//从文件读入链表内容(尾插)
-void create_list_from_file(sqlist &L, std::string path)
-{
-    std::ifstream file(path); // 打开文件用于读取
-    if (!file.is_open()) {    // 如果文件不能打开
-        std::cerr << "FileOpen error: 文件读取失败" << std::endl;
-        return ;
-    }
-    //输入字符串
-    elemtype str;     
-    if (std::getline(file, str)) {  //读取成功
-        if (L.elem != nullptr || L.length > 0){   // 顺序表存在且不为空，直接覆盖原链表
-            cover_list(L, str);
-            return ;
-        }
-
-        //顺序表不存在，创建顺序表
-        if(L.elem == nullptr){
-            init_list(L);    //初始化顺序表
-            if (L.elem == nullptr){                      //判断顺序表是否创建成功
-                std::cerr << "Input Error: 创建失败" << std::endl;
-                return ; 
-            }    
-        }
-        create_list(L, str);   
-    }
-    file.close();
 }

@@ -675,7 +675,7 @@ size_type search_sublist(linklist head, linklist pattern, size_type start, size_
 }
 
 //查找子串，返回每个子串的位置
-bool search_sublist(linklist head, linklist pattern, linklist &result)
+bool search_sublists(linklist head, linklist pattern, linklist &result)
 {
     if (head == nullptr){      //链表不存在
         fprintf(stderr, "链表不存在: listExit Erro\n"); 

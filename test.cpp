@@ -46,14 +46,22 @@ int kmp(std::string S, std::string T)
     }
 }
 
+void menu()
+{
+    std::cout << "################################### MENU ########################################" << std::endl;
+    std::cout << "##    --------------------请根据操作输入相应的命令或数字-------------------    ##" << std::endl; 
+    std::cout << "##          ***********   0.Exit(退出)                      ***********        ##" << std::endl; 
+    std::cout << "##          ***********   1.LoadHTML(加载HTML文件)          ***********        ##" << std::endl; 
+    std::cout << "##          ***********   2.CheckHTML(检查HTML代码合法性)   ***********        ##" << std::endl; 
+    std::cout << "##          ***********   3.OutHTML(输出XPATH路径下的代码)  ***********        ##" << std::endl;
+    std::cout << "##          ***********   4.OutText(输出XPATH路径下的文本)  ***********        ##" << std::endl;
+    std::cout << "##          ***********   5.URLParser(解析URL)              ***********        ##" << std::endl;
+    std::cout << "#################################################################################" << std::endl;
+}
+
 
 int main()
 {
-    std::string str1 = "abc";
-    int length = str1.length();
-    int next[length] = {0};
-    for(int i = 0; i < length; i++){
-        std::cout << next[i] << " " ;
-    }
+    menu();
     return 0;
 }

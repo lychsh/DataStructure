@@ -4,155 +4,155 @@
 void Menu(linklist &head, linklist &pattern)
 {
     int exit = 0;
-    //æ“ä½œç”¨åˆ°çš„å˜é‡
-    linklist mergehead = nullptr;      //åˆå¹¶åçš„å­—ç¬¦ä¸²
-    linklist result;       //å­˜æ”¾æ“ä½œçš„ç»“æœ
+    //²Ù×÷ÓÃµ½µÄ±äÁ¿
+    linklist mergehead = nullptr;      //ºÏ²¢ºóµÄ×Ö·û´®
+    linklist result;       //´æ·Å²Ù×÷µÄ½á¹û
     create_node(result, "");     
-    int pos = 0;      //æ’å…¥ï¼Œåˆ é™¤ä½ç½®  
-    int count = 0;   //åˆ é™¤å…ƒç´ ä¸ªæ•°
-    elemtype data;      //åˆ é™¤çš„æ•°æ®,æ’å…¥çš„å•è¯
-    elemtype enter;      //enterè¾“å…¥å†…å®¹ï¼ˆä¿è¯éšæ„è¾“å…¥ç¨‹åºç»§ç»­ï¼‰
+    int pos = 0;      //²åÈë£¬É¾³ıÎ»ÖÃ  
+    int count = 0;   //É¾³ıÔªËØ¸öÊı
+    elemtype data;      //É¾³ıµÄÊı¾İ,²åÈëµÄµ¥´Ê
+    elemtype enter;      //enterÊäÈëÄÚÈİ£¨±£Ö¤ËæÒâÊäÈë³ÌĞò¼ÌĞø£©
     while(!exit)
     {
-        std::cout << "--------------è¯·æ ¹æ®æ“ä½œè¾“å…¥ç›¸åº”çš„æ•°å­—--------------" << std::endl; 
-        std::cout << "**********************0.é€€å‡º*************************" << std::endl; 
-        std::cout << "*******************1.è¾“å…¥å­—ç¬¦ä¸²**********************" << std::endl; 
-        std::cout << "*******************2.æ‰“å°å­—ç¬¦ä¸²**********************" << std::endl; 
-        std::cout << "*******************3.æ’å…¥å•è¯************************" << std::endl; 
-        std::cout << "*******************4.åˆ é™¤å•è¯************************" << std::endl; 
-        std::cout << "*******************5.å­—ç¬¦ä¸²å€’ç½®**********************" << std::endl; 
-        std::cout << "*******************6.å›æ–‡ä¸²åˆ¤æ–­**********************" << std::endl; 
-        std::cout << "*******************7.å­—ç¬¦ä¸²å•è¯è®¡æ•°******************" << std::endl; 
-        std::cout << "*******************8.å­—ç¬¦ä¸²æŸ¥æ‰¾**********************" << std::endl; 
-        std::cout << "*******************9.åˆå¹¶å­—ç¬¦ä¸²**********************" << std::endl; 
-        std::cout << "*******************10.é”€æ¯å­—ç¬¦ä¸²**********************" << std::endl; 
+        std::cout << "--------------Çë¸ù¾İ²Ù×÷ÊäÈëÏàÓ¦µÄÊı×Ö--------------" << std::endl; 
+        std::cout << "**********************0.ÍË³ö*************************" << std::endl; 
+        std::cout << "*******************1.ÊäÈë×Ö·û´®**********************" << std::endl; 
+        std::cout << "*******************2.´òÓ¡×Ö·û´®**********************" << std::endl; 
+        std::cout << "*******************3.²åÈëµ¥´Ê************************" << std::endl; 
+        std::cout << "*******************4.É¾³ıµ¥´Ê************************" << std::endl; 
+        std::cout << "*******************5.×Ö·û´®µ¹ÖÃ**********************" << std::endl; 
+        std::cout << "*******************6.»ØÎÄ´®ÅĞ¶Ï**********************" << std::endl; 
+        std::cout << "*******************7.×Ö·û´®µ¥´Ê¼ÆÊı******************" << std::endl; 
+        std::cout << "*******************8.×Ö·û´®²éÕÒ**********************" << std::endl; 
+        std::cout << "*******************9.ºÏ²¢×Ö·û´®**********************" << std::endl; 
+        std::cout << "*******************10.Ïú»Ù×Ö·û´®**********************" << std::endl; 
         int choose = 0;
-        std::cout << "è¾“å…¥ä½ çš„é€‰æ‹©ï¼š" ;      //é€‰æ‹©æ“ä½œ
-        if (!(std::cin >> choose)) {  // å¦‚æœè¾“å…¥ä¸æ˜¯ä¸€ä¸ªæ•´æ•°
-        std::cin.clear();         // æ¸…é™¤é”™è¯¯æ ‡å¿—
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // å¿½ç•¥é”™è¯¯è¾“å…¥ç›´åˆ°ä¸‹ä¸€ä¸ªæ¢è¡Œç¬¦
-        std::cout << "------è¯·è¾“å…¥0-9æ•°å­—é€‰æ‹©æ“ä½œ-----" << std::endl;
-        continue;            // ç»§ç»­ä¸‹ä¸€æ¬¡å¾ªç¯è¿­ä»£
+        std::cout << "ÊäÈëÄãµÄÑ¡Ôñ£º" ;      //Ñ¡Ôñ²Ù×÷
+        if (!(std::cin >> choose)) {  // Èç¹ûÊäÈë²»ÊÇÒ»¸öÕûÊı
+        std::cin.clear();         // Çå³ı´íÎó±êÖ¾
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // ºöÂÔ´íÎóÊäÈëÖ±µ½ÏÂÒ»¸ö»»ĞĞ·û
+        std::cout << "------ÇëÊäÈë0-9Êı×ÖÑ¡Ôñ²Ù×÷-----" << std::endl;
+        continue;            // ¼ÌĞøÏÂÒ»´ÎÑ­»·µü´ú
         }
         std::cout << std::endl;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  //æ¸…ç©ºç¼“å†²åŒº
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  //Çå¿Õ»º³åÇø
 
         switch (choose)
         {
         case 0:
             exit = 1;
-            std::cout << "----------------å·²é€€å‡º----------------" << std::endl;
+            std::cout << "----------------ÒÑÍË³ö----------------" << std::endl;
             break;
         case 1:
-            std::cout << "è¾“å…¥å­—ç¬¦ä¸², è¯ä¹‹é—´ä»¥ç©ºæ ¼æˆ–é€—å·éš”å¼€ï¼š" << std::endl;
+            std::cout << "ÊäÈë×Ö·û´®, ´ÊÖ®¼äÒÔ¿Õ¸ñ»ò¶ººÅ¸ô¿ª£º" << std::endl;
             create_list_from_input(head);
-            //create_list_from_file(head, "D:\\CODE_REPOSITORY\\DataStructure\\Homework\\å®éªŒ01\\Chinese_Large.txt");
+            //create_list_from_file(head, "D:\\CODE_REPOSITORY\\DataStructure\\Homework\\ÊµÑé01\\Chinese_Large.txt");
             break;
         case 2:
-            std::cout <<"å­—ç¬¦ä¸²å¦‚ä¸‹ï¼š" << std::endl;
+            std::cout <<"×Ö·û´®ÈçÏÂ£º" << std::endl;
             list_print(head);
             break;
         case 3:
-            std::cout << "è¯·è¾“å…¥éœ€è¦æ’å…¥çš„å•è¯, ä»¥ç©ºæ ¼éš”å¼€ "<<std::endl;
+            std::cout << "ÇëÊäÈëĞèÒª²åÈëµÄµ¥´Ê, ÒÔ¿Õ¸ñ¸ô¿ª "<<std::endl;
             create_list_from_input(pattern);
-            std::cout << "è¯·è¾“å…¥éœ€è¦æ’å…¥çš„ä½ç½®" << std::endl;
-            if(! (std::cin >> pos)){      //è¾“å…¥èŒƒå›´è¶…è¿‡intæˆ–ä¸æ˜¯æ•´æ•°
-                std::cin.clear();      // æ¸…é™¤é”™è¯¯æ ‡å¿—
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');   //å¿½ç•¥é”™è¯¯è¾“å‡º
-                std::cout << "---è¾“å…¥é”™è¯¯,è¯·é‡æ–°é€‰æ‹©----" << std::endl;
+            std::cout << "ÇëÊäÈëĞèÒª²åÈëµÄÎ»ÖÃ" << std::endl;
+            if(! (std::cin >> pos)){      //ÊäÈë·¶Î§³¬¹ıint»ò²»ÊÇÕûÊı
+                std::cin.clear();      // Çå³ı´íÎó±êÖ¾
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');   //ºöÂÔ´íÎóÊä³ö
+                std::cout << "---ÊäÈë´íÎó,ÇëÖØĞÂÑ¡Ôñ----" << std::endl;
                 break;
             }
-            if(pos <= 0 || list_empty(pattern)){      //è¾“å…¥æœ‰è¯¯
-                std::cout << "---è¾“å…¥é”™è¯¯,è¯·é‡æ–°é€‰æ‹©----" << std::endl;
+            if(pos <= 0 || list_empty(pattern)){      //ÊäÈëÓĞÎó
+                std::cout << "---ÊäÈë´íÎó,ÇëÖØĞÂÑ¡Ôñ----" << std::endl;
                 break;
             }
             if(list_insert_words(head, pos, pattern)){
-                std::cout << "----æ’å…¥å®Œæˆ----" << std::endl;
+                std::cout << "----²åÈëÍê³É----" << std::endl;
                 pattern->next = nullptr;
             }
             else{
-                std::cout << "----æ’å…¥å¤±è´¥----" << std::endl;
+                std::cout << "----²åÈëÊ§°Ü----" << std::endl;
             }
             break;
         case 4:
-            std::cout << "è¯·è¾“å…¥éœ€è¦åˆ é™¤çš„å•è¯çš„ä½ç½®å’Œä¸ªæ•°, ç©ºæ ¼åˆ†éš”"<<std::endl;
-            if(!(std::cin >> pos >> count) ){    //è¾“å…¥æœ‰è¯¯
-                std::cout << "---è¾“å…¥é”™è¯¯, è¯·é‡æ–°é€‰æ‹©----" << std::endl;
-                std::cin.clear();      // æ¸…é™¤é”™è¯¯æ ‡å¿—
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');   //å¿½ç•¥é”™è¯¯è¾“å‡º
+            std::cout << "ÇëÊäÈëĞèÒªÉ¾³ıµÄµ¥´ÊµÄÎ»ÖÃºÍ¸öÊı, ¿Õ¸ñ·Ö¸ô"<<std::endl;
+            if(!(std::cin >> pos >> count) ){    //ÊäÈëÓĞÎó
+                std::cout << "---ÊäÈë´íÎó, ÇëÖØĞÂÑ¡Ôñ----" << std::endl;
+                std::cin.clear();      // Çå³ı´íÎó±êÖ¾
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');   //ºöÂÔ´íÎóÊä³ö
                 break;
             } 
-            clear_list(result);   //æ¸…ç©ºä¸Šä¸€æ¬¡æ“ä½œçš„ç»“æœ
+            clear_list(result);   //Çå¿ÕÉÏÒ»´Î²Ù×÷µÄ½á¹û
             if (list_delete_words(head, pos, count, result)){
-                std::cout << "-----åˆ é™¤æˆåŠŸ-----" << std::endl;
-                std::cout << "åˆ é™¤å†…å®¹ä¸º: " << std::endl;
+                std::cout << "-----É¾³ı³É¹¦-----" << std::endl;
+                std::cout << "É¾³ıÄÚÈİÎª: " << std::endl;
                 list_print(result);
-                clear_list(result);    //æ¸…ç©ºåˆ é™¤ç»“æœ
+                clear_list(result);    //Çå¿ÕÉ¾³ı½á¹û
             }
             else{
-                std::cout << "------åˆ é™¤å¤±è´¥-----" << std::endl;
+                std::cout << "------É¾³ıÊ§°Ü-----" << std::endl;
             }
             break; 
         case 5:
-            list_reverse(head);    //å€’ç½®å­—ç¬¦ä¸²
+            list_reverse(head);    //µ¹ÖÃ×Ö·û´®
             break; 
         case 6:
             if (is_palindrome(head)){
-                std::cout << "----å­—ç¬¦ä¸²æ˜¯å›æ–‡ä¸²----" << std::endl;
+                std::cout << "----×Ö·û´®ÊÇ»ØÎÄ´®----" << std::endl;
             }
             else{
-                std::cout << "----å­—ç¬¦ä¸²ä¸æ˜¯å›æ–‡ä¸²----" << std::endl;
+                std::cout << "----×Ö·û´®²»ÊÇ»ØÎÄ´®----" << std::endl;
             }
             break;
         case 7:
-            std::cout << "å­—ç¬¦ä¸²åŒ…å«çš„å•è¯æ•°ä¸ºï¼š" << list_length(head) << std::endl;
+            std::cout << "×Ö·û´®°üº¬µÄµ¥´ÊÊıÎª£º" << list_length(head) << std::endl;
             break;
         case 8:
-            std::cout << "è¯·è¾“å…¥è¦æŸ¥æ‰¾çš„å­—ç¬¦ä¸²" << std::endl;
+            std::cout << "ÇëÊäÈëÒª²éÕÒµÄ×Ö·û´®" << std::endl;
             create_list_from_input(pattern);
             if(search_sublists(head, pattern, result)){
-                std::cout << "å­—ç¬¦ä¸²ä¸­å­˜åœ¨å­ä¸²ï¼š" << std::endl;
+                std::cout << "×Ö·û´®ÖĞ´æÔÚ×Ó´®£º" << std::endl;
                 list_print(pattern);
-                std::cout << "ä½ç½®ä¾æ¬¡ä¸ºï¼š" << std::endl;
+                std::cout << "Î»ÖÃÒÀ´ÎÎª£º" << std::endl;
                 list_print(result);
-                clear_list(result);   //æ¸…ç©ºç»“æœ
+                clear_list(result);   //Çå¿Õ½á¹û
             }
             else{
-                std::cout << "å­—ç¬¦ä¸²ä¸­ä¸å­˜åœ¨å­ä¸²ï¼š" << std::endl;
+                std::cout << "×Ö·û´®ÖĞ²»´æÔÚ×Ó´®£º" << std::endl;
                 list_print(pattern);
             }
             std::cout << std::endl;
             break;
         case 9:
-            std::cout << "è¯·è¾“å…¥è¦åˆå¹¶çš„å­—ç¬¦ä¸²ï¼š" << std::endl;
+            std::cout << "ÇëÊäÈëÒªºÏ²¢µÄ×Ö·û´®£º" << std::endl;
             create_list_from_input(pattern);
             mergehead = new_merge_list(head, pattern);
-            std::cout << "åˆå¹¶åçš„å­—ç¬¦ä¸²ä¸ºï¼š" << std::endl;
+            std::cout << "ºÏ²¢ºóµÄ×Ö·û´®Îª£º" << std::endl;
             list_print(mergehead);
-            destroy_list(mergehead);   //é”€æ¯åˆå¹¶ä¸²ï¼›
+            destroy_list(mergehead);   //Ïú»ÙºÏ²¢´®£»
             break; 
         case 10:
             destroy_list(head);
-            std::cout << "åˆ é™¤æˆåŠŸ" << std::endl;
+            std::cout << "É¾³ı³É¹¦" << std::endl;
         default:
-            std::cout << "------é€‰æ‹©é”™è¯¯ï¼Œè¯·é‡æ–°é€‰æ‹©-----" << std::endl;
+            std::cout << "------Ñ¡Ôñ´íÎó£¬ÇëÖØĞÂÑ¡Ôñ-----" << std::endl;
             break;
         }
-        if (!exit){   //é¿å…æ“ä½œå®Œç›´æ¥æ‰“å°èœå•ï¼Œå½±å“é˜…è¯»ï¼ˆé™¤é€€å‡ºæ“ä½œå¤–ï¼‰
-            std::cout << "----è¯·æŒ‰Enterç»§ç»­æ‰§è¡Œæ“ä½œ----" << std::endl;
+        if (!exit){   //±ÜÃâ²Ù×÷ÍêÖ±½Ó´òÓ¡²Ëµ¥£¬Ó°ÏìÔÄ¶Á£¨³ıÍË³ö²Ù×÷Íâ£©
+            std::cout << "----Çë°´Enter¼ÌĞøÖ´ĞĞ²Ù×÷----" << std::endl;
             std::getline(std::cin, enter);
             std::cout << std::endl;
         }
     }
-    destroy_list(mergehead);    //é”€æ¯åˆå¹¶é“¾è¡¨
+    destroy_list(mergehead);    //Ïú»ÙºÏ²¢Á´±í
     destroy_list(result);
 }
 
 
 int main()
 {
-    linklist head = nullptr;      //é“¾è¡¨
-    linklist pattern = nullptr;   //æŸ¥æ‰¾ï¼Œåˆå¹¶çš„å­ä¸²æˆ–å­—ç¬¦ä¸²
+    linklist head = nullptr;      //Á´±í
+    linklist pattern = nullptr;   //²éÕÒ£¬ºÏ²¢µÄ×Ó´®»ò×Ö·û´®
     Menu(head, pattern);
     destroy_list(head);
     destroy_list(pattern);

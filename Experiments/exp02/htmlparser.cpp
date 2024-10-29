@@ -4,64 +4,129 @@
 #include <fstream>
 #include <limits> 
 #include<vector>
-#include<regex>
 #include<cmath>
+#include <chrono>
+#include <thread>
+#include<iostream>
 
-//è‡ªé—­åˆæ ‡ç­¾
-const std::vector<std::string> SINGLE_TAG = {
-         "base", "link", "img", "input", "br", "hr", "!DOCTYPE", "area",
-        "command", "embed", "keygen",  "meta", "param", "col",
+
+//×Ô±ÕºÏ±êÇ©
+const std::vector<std::string> SINGLE_TAGs = {
+        "base", "link", "img", "input", "br", "hr", "!DOCTYPE", "area",
+        "command", "embed", "keygen",  "meta", "param", 
         "source", "track", "wbr" 
 };
 
-//å—çº§å…ƒç´ ï¼Œç‰¹æ®Šè¡Œå†…å…ƒç´ a
-const std::vector<std::string> HIGHELEM = {
-    "html", "div","ul", "ol", "li", "a", "dl", "dt", "dd", "header", "footer", "tr",
-    "section", "article", "nav", "aside", "figure", "figcaption", "main", "blockquote", 
-    "pre", "address", "head", "body", "button", "table", "tbody", "textarea", "option","optgroup"
-};
-//è¡Œå†…å…ƒç´ ,ç‰¹æ®Šå—çº§å…ƒç´  - åªèƒ½åµŒå¥—è¡Œå†…å…ƒç´ 
-const std::vector<std::string> LOWELEM = {
-    "h1", "h2", "h3", "h4", "h5", "h6", "p", "dt",
-    "span", "td","th" "strong", "em", "b", "i", "del", "ins",
-    "kbd", "samp", "var", "code", "q", "cite", "dfn",
-    "abbr", "time", "mark", "ruby", "rt", "rp", "bdi",
-    "bdo", "br", "wbr", "small", "sub", "sup", "title","P", "audio"
+//ÎÄ±¾ĞĞÄÚÔªËØ--Ö»ÄÜÇ¶Ì×ÎÄ±¾
+const std::vector<std::string> TEXT_INLINE_ELEMS =  {
+    "option", "textarea", "optgroup"
 };
 
-enum Order{     //èœå•å‘½ä»¤
+//ĞĞÄÚÔªËØ--Ö»ÄÜÇ¶Ì×ĞĞÄÚÔªËØ,¿ÉÒÔÇ¶Ì××ÔÉí
+const std::vector<std::string> INLINE_ELEMs = {
+    "span",  "strong", "em", "b", "i", "del", "ins",
+    "kbd", "samp", "var", "code", "q", "cite", "dfn",
+    "abbr", "time", "mark", "ruby", "rt", "rp", "bdi",
+    "bdo", "wbr", "small", "sub", "sup", "title", "audio"
+};
+
+//ÌØÊâ¿é¼¶ÔªËØ--Ö»ÄÜÇ¶Ì×ĞĞÄÚÔªËØ£¬²»ÄÜÇ¶Ì×¿é¼¶ÔªËØ£¬°üÀ¨×ÔÉí
+const std::vector<std::string> SPECIAL_BLOCKS = {
+    "h1", "h2", "h3", "h4", "h5", "h6", "p", "dt", "dd"
+};
+
+//¿é¼¶ÔªËØ£¬ÌØÊâĞĞÄÚÔªËØa
+const std::vector<std::string> BLOCKS = {
+    "html", "div","ul", "ol", "li", "a", "dl", "header", "footer",
+    "section", "article", "nav", "aside", "figure", "figcaption", "main", "blockquote", 
+    "pre", "address", "head", "body", "button"
+};
+
+//table±êÇ©µÄÖ±½Ó×ÓÔªËØ
+const std::vector<std::string> TABLE_1 = {
+    "tbody", "thead", "tfoot", "caption", "colgroup"
+};
+
+
+enum Order{     //²Ëµ¥ÃüÁî
     Exit,
     LoadHTML,
     CheckHTML,
     OutHTML,
     OutText,
-    URLParser,
+    XPathSearch,
     Wrong
 };
 
-enum HtmlElemClass{
-    None,
-    Single,
-    Inline,
-    Block  
-};
-
-
+//HTML±êÇ©±È½Ï--HTML±êÇ©²»Çø·Ö´óĞ¡Ğ´
 bool html_tag_cmp(std::string str1, std::string str2)
 {
     size_t len1 = str1.length();
     size_t len2 = str2.length();
-    if(len1 != len2){
+    if(len1 != len2){    //Èç¹û³¤¶È²»µÈ£¬±êÇ©Ò»¶¨²»ÏàÍ¬
         return false;
     }
     for(int i = 0; i < len1; i++){
-        if(str1[i] != str2[i] && std::abs(str1[i] - str2[i]) != 32){
+        if(str1[i] != str2[i] && std::abs(str1[i] - str2[i]) != 32){    //Èç¹û±êÇ©²»ÏàÍ¬(²»Çø·Ö´óĞ¡Ğ´)£¬·µ»Øfalse
             return false;
         }
     }
-    return true;
+    return true;    //·ñÔò·µ»Øtrue
 }
 
+
+//·µ»Ø±êÇ©ÔªËØµÄÀàĞÍ
+HtmlElemClass type_of_tag(std::string tag)
+{
+    //ÅĞ¶ÏÊÇ·ñÊÇ×Ô±ÕºÏ±êÇ©
+    for (const auto& elem : SINGLE_TAGs) {
+        if(html_tag_cmp(tag, elem)){
+            return Single;
+        }
+    }
+    //ÅĞ¶ÏÊÇ·ñÊÇĞĞÄÚÔªËØ
+    for (const auto& elem : INLINE_ELEMs) {
+        if(html_tag_cmp(tag, elem)){
+            return Inline;
+        }
+    }
+    //ÅĞ¶ÏÊÇ·ñÊÇ¿é¼¶ÔªËØ»òÌØÊâĞĞÄÚÔªËØ
+    for (const auto& elem : BLOCKS) {
+        if(html_tag_cmp(tag, elem)){
+            return Block;
+        }    
+    }
+    //ÅĞ¶ÏÊÇ·ñÊÇÌØÊâ¿é¼¶ÔªËØ
+    for (const auto& elem : SPECIAL_BLOCKS) {
+        if(html_tag_cmp(tag, elem)){
+            return SpecialBlock;
+        }    
+    }
+    //ÅĞ¶ÏÊÇ·ñÊÇtable±êÇ©ÔªËØ
+    if(tag == "table"){
+        return Table;
+    }
+    for(const auto& elem: TABLE_1){
+        if(html_tag_cmp(tag, elem)){
+            return Table_1;
+        }
+    }
+    if(tag == "tr"){
+        return Table_2;
+    }
+    if(tag == "td" || tag == "th" || tag == "col"){
+        return Table_3;
+    }
+    //ÅĞ¶ÏÊÇ·ñÊÇÎÄ±¾ĞĞÄÚÔªËØ
+    for (const auto& elem : TEXT_INLINE_ELEMS) {
+        if(html_tag_cmp(tag, elem)){
+            return TextInline;
+        }    
+    }
+    return None;
+}
+
+//»ñÈ¡ÊäÈëÖ¸Áî
 Order get_order(std::string order)
 {
     if(order == "Exit" || order == "0"){
@@ -79,568 +144,409 @@ Order get_order(std::string order)
     else if(order == "OutText" || order == "4"){
         return OutText;
     }
-    else if(order == "URLParser" || order == "5"){
-        return URLParser;
+    else if(order == "XPathSearch" || order == "5"){
+        return XPathSearch;
     }
     else {
         return Wrong;
     }
 }
 
-//å°†è½¬ä¹‰å­—ç¬¦/æ”¹ä¸º//
+//½«ÎÄ¼şÂ·¾¶ÖĞµÄ×ªÒå×Ö·û/¸ÄÎª//
 void transfer_path(std::string &path)
 {   
     size_t pos = 0;
     while((pos = path.find('\\', pos)) != std::string::npos) {
         path.replace(pos, 1, "\\\\");
-        pos += 2; // å› ä¸ºæ›¿æ¢åçš„å­—ç¬¦ä¸²é•¿åº¦å¢åŠ äº†ï¼Œæ‰€ä»¥éœ€è¦è·³è¿‡ä¸¤ä¸ªå­—ç¬¦
+        pos += 2; // ÒòÎªÌæ»»ºóµÄ×Ö·û´®³¤¶ÈÔö¼ÓÁË£¬ËùÒÔĞèÒªÌø¹ıÁ½¸ö×Ö·û
     }
 }
 
+//ÒÆ³ı¶àÓà¿Õ¸ñ
+std::string remove_extraspace(std::string tag, size_t len)
+{
+    std::string subtag;
+    size_t start, end, size = len - 1;
+    if(tag[1] == '/'){   //Èç¹ûÊÇºó±êÇ©
+        start = 2;
+        subtag = "</";
+    }    
+    else{             //Èç¹ûÊÇÇ°±êÇ©
+        start = 1;
+        subtag = '<';
+    }   
+    while(start < size){
+        if(tag[start] == ' '){     //Ìø¹ı¶àÓà¿Õ¸ñ
+            start ++;
+            continue;
+        }
+        end = find_first_delimiter(tag, len, start, "> ");
+        if(tag[end] == ' '){     //Ã»ÓĞµ½±ÕºÏ´¦>
+            subtag += tag.substr(start, end - start + 1);    //¼ÓÉÏ±êÇ©Ò»²¿·ÖºÍÒ»¸ö¿Õ¸ñ
+            start = end + 1;
+        }
+        else{             
+            subtag += tag.substr(start, end - start);
+            break;
+        }
+    }
+    if(tag[len - 2] == ' '){
+        len = subtag.length();
+        subtag[len - 1] = '>';
+    }
+    else{
+        subtag += ">";
+    }
+    return subtag;
+}
 
-//æŒ‰æ–‡ä»¶è¯»å–htmlæ–‡ä»¶ï¼Œåˆ‡è¯å¹¶ä¿å­˜åœ¨é¡ºåºè¡¨ä¸­
+
+//°´ÎÄ¼ş¶ÁÈ¡htmlÎÄ¼ş£¬ÇĞ´Ê²¢±£´æÔÚË³Ğò±íÖĞ
 bool load_html_by_file(sqlist &content, std::string path)
 {
-    transfer_path(path);       //è·å–æ­£ç¡®è·¯å¾„
+    transfer_path(path);       //»ñÈ¡ÕıÈ·Â·¾¶
     std::ifstream file(path);
     if(!file.is_open()){
-        std::cerr << "æ— æ³•æ‰“å¼€æ–‡ä»¶" << std::endl;
+        std::cerr << "Can't open file" << std::endl;
         return false;
     }
 
-    std::stringstream buffer;  //æ–‡ä»¶å­—èŠ‚æµ
-    std::string html, word, tag, text = "", tmp;       //æ–‡ä»¶å†…å®¹ã€åˆ‡å‡ºçš„è¯ã€æ ‡ç­¾ã€æ–‡æœ¬ã€
-    std::string::size_type size;     //æ–‡ä»¶å†…å®¹é•¿åº¦
-    std::string::size_type start = 0, end, len;   //åˆ‡è¯å¼€å§‹å’Œç»“å°¾ã€è¯é•¿
-    size_type end1;
-    int count = 1;     //æ ‡ç­¾å’Œæ–‡æœ¬ä¸ªæ•°
-    bool tag_open = false;
-    //è¯»å–æ–‡ä»¶å†…å®¹
+    std::stringstream buffer;  //ÎÄ¼ş×Ö½ÚÁ÷
+    std::string html, word, text = "", tmp;       //ÎÄ¼şÄÚÈİ¡¢ÇĞ³öµÄ´Ê¡¢±êÇ©¡¢ÎÄ±¾¡¢
+    elemtype elem;      
+    size_t size;     //ÎÄ¼şÄÚÈİ³¤¶È
+    size_t start = 0, end, len;   //ÇĞ´Ê¿ªÊ¼ºÍ½áÎ²¡¢´Ê³¤
+    size_t end1, start1;
+    int count = 1;     //±êÇ©ºÍÎÄ±¾¸öÊı
+    //¶ÁÈ¡ÎÄ¼şÄÚÈİ
     buffer << file.rdbuf();
     html = buffer.str();
     file.close();
     size = html.length();
-    //é¢„å¤„ç†æ¢è¡Œç¬¦
+    //Ô¤´¦Àí»»ĞĞ·û
     for(int i = 0; i < size; i++){
         if(html[i] == '\n'){
             html[i] = ' ';
         }
     }
-    //éå†åˆ‡è¯
+    //±éÀúÇĞ´Ê
     while(start < size){
-        if(html[start] == ' '){      //é‡åˆ°ç©ºæ ¼è·³è¿‡
+        if(html[start] == ' '){      //Óöµ½¿Õ¸ñÌø¹ı
             start += 1;
             continue;
         }
-        //è¯»å–æ ‡ç­¾å’Œæ–‡æœ¬
-        end = find_first_delimiter(html, size, start, "<");   //æŸ¥æ‰¾tagå¼€å§‹ä½ç½®
-        if(tag_open || end == start){        //å¦‚æœæ‰¾åˆ°æ ‡ç­¾èµ·å§‹æˆ–æ ‡ç­¾æœªæ‰¾å®Œ
-            if(text != ""){  //åˆ¤æ–­ä¹‹å‰çš„textæ˜¯å¦ä¸ºç©ºï¼Œä¸ä¸ºç©ºå…¥æ ˆ
-                //textå­˜å…¥é¡ºåºè¡¨
-                list_insert(content, count, text);    //æ’å…¥é¡ºåºè¡¨
+        //¶ÁÈ¡±êÇ©ºÍÎÄ±¾
+        end = find_first_delimiter(html, size, start, "<");   //²éÕÒtag¿ªÊ¼Î»ÖÃ
+        if(end == start){        //Èç¹ûÕÒµ½±êÇ©ÆğÊ¼»ò±êÇ©Î´ÕÒÍê
+            if(text != ""){  //ÅĞ¶ÏÖ®Ç°µÄtextÊÇ·ñÎª¿Õ£¬²»Îª¿ÕÈëÕ»
+                //text´æÈëË³Ğò±í
+                elem.tag = text;
+                elem.type = Text;
+                elem.tag_name = "";
+                list_insert(content, count, elem);    //²åÈëË³Ğò±í
                 count ++;
-                text = "";            //ç½®ç©ºï¼Œæ–¹ä¾¿ä¸‹ä¸€æ¬¡æŸ¥æ‰¾
+                text = "";            //ÖÃ¿Õ£¬·½±ãÏÂÒ»´Î²éÕÒ
             }
-            end = find_first_delimiter(html, size, start, ">");  //æ‰¾åˆ°æ ‡ç­¾ç»“å°¾
-            tmp = html.substr(start, end - start + 1);
+            end = find_first_delimiter(html, size, start, ">");  //ÕÒµ½±êÇ©½áÎ²
             len = end - start + 1;
-            //åˆ¤æ–­æ˜¯å¦æ˜¯è¿‡æ»¤æ ‡ç­¾å¹¶è·³è¿‡(<!-- --> or <script> or <style>)
+            tmp = html.substr(start, len);
+            
+            //ÅĞ¶ÏÊÇ·ñÊÇ¹ıÂË±êÇ©²¢Ìø¹ı(<!-- --> or <script> or <style>)
             if(len > 6){
                 if(tmp[1] == '!' && tmp[2] == '-'){
-                    end = find_first_substr(html, "->", start, size);    //è·³è¿‡æ³¨é‡Š
+                    end = find_first_substr(html, "->", start, size);    //Ìø¹ı×¢ÊÍ
                     start = end + 2;
                     continue;
                 }
-                else if ((tmp[1] == 's' && tmp[2] == 'c' ) ||(tmp[1] == 's' && tmp[2] == 't' && tmp[3] == 'y')){
-                    end = find_first_delimiter(html, size, end + 1, ">");    //æ‰¾è¿‡æ»¤å—ç»“æŸæ ‡ç­¾ä½ç½®
-                    start = end + 1;      //è·³è¿‡è¿‡æ»¤å—
+                else if ((tmp[1] == 's' && tmp[2] == 'c' )){
+                    end = find_first_substr(html, "script>", end + 1, size);    //ÕÒ¹ıÂË¿é½áÊø±êÇ©Î»ÖÃ
+                    start = end + 7;      //Ìø¹ı¹ıÂË¿é
+                    continue;
+                }
+                else if((tmp[1] == 's' && tmp[2] == 't' && tmp[3] == 'y')){
+                    end = find_first_substr(html, "style>", end + 1, size);    //ÕÒ¹ıÂË¿é½áÊø±êÇ©Î»ÖÃ
+                    start = end + 6;      //Ìø¹ı¹ıÂË¿é
                     continue;
                 }
             }
             end1 = find_first_substr(html, "  ", start, size);
-            if(end1 < end){     //tagä¸­é—´æœ‰å¤šä¸ªç©ºæ ¼
-                tag_open = true;
-                
-                if(html[end1 - 1] == '/' || html[end1 - 1] == '<' || html[end1 + 1] == '>'){   //å¦‚æœæ˜¯åœ¨æ ‡ç­¾åç§°å’Œæ ‡ç­¾æ‹¬å·ä¹‹é—´æœ‰ç©ºæ ¼ä¸ä¿ç•™ç©ºæ ¼
-                    tag += html.substr(start, end1 - start);
-                }
-                else{   //å¦åˆ™ä¿ç•™ä¸€ä¸ªç©ºæ ¼
-                    tag += html.substr(start, end1 - start + 1);      //åŠ ä¸Šå½“å‰éƒ¨åˆ†æ ‡ç­¾
-                }
-                start = end1 + 1;
-                continue;
+            elem.tag = tmp;
+            if(end1 < end){     //tagÖĞ¼äÓĞ¶à¸ö¿Õ¸ñ£¬È¥³ı¶àÓà¿Õ¸ñ
+                elem.tag = remove_extraspace(tmp, len);
             }
-            else{
-                if(tag_open){    //å¦‚æœæ˜¯å¤šç©ºæ ¼åˆ†éš”çš„æ ‡ç­¾
-                    tag += html.substr(start, end - start + 1);      //åŠ ä¸Šä¹‹å‰çš„æ ‡ç­¾å†…å®¹æ„æˆå®Œæ•´æ ‡ç­¾
-                }
-                else{      //å¦åˆ™ç›´æ¥è·å–æ ‡ç­¾
-                    tag = html.substr(start, end - start + 1);      
-                }
-                tag_open = false;
-            }
-            //tagå­˜å…¥é¡ºåºè¡¨
-            list_insert(content, count, tag);
+            //tag´æÈëË³Ğò±í
+            end1 = find_first_delimiter(elem.tag, elem.tag.length(), 0, "> ");
+            start1 = (elem.tag[1] == '/')? 2: 1;     //Ç°ºó±êÇ©Ãû³ÆÆğÊ¼£¬startÖµ1¡¢ 2·Ö±ğ´ú±íÇ°ºó±êÇ©
+            elem.tag_name = elem.tag.substr(start1, end1 - start1);   //Ö»±£Áô±êÇ©Ãû³Æ
+            elem.type = type_of_tag(elem.tag_name);     //»ñÈ¡±êÇ©Àà±ğ
+            list_insert(content, count, elem);       //²åÈëË³Ğò±í
             count ++;
-            tag = "";    //ç½®ç©ºæ ‡ç­¾
-        }
-        else{      //æ‰¾åˆ°æ–‡æœ¬
-            end = find_first_delimiter(html, size, start, "< ");   //è¯ç»“æŸç¬¦ä½ç½®
-            word = html.substr(start, end - start);          //åˆ‡è¯
-            if(word == " " || word == ""){                //ç©ºè¯è·³è¿‡
-                start += 1;
-                continue;
-            }
-            len = end - start;
-            if(end < size && html[end] == '<'){             //è¯åæ˜¯æ ‡ç­¾ï¼Œä¸è·³è¿‡æ ‡ç­¾å¼€å¤´ï¼Œè¯åä¸åŠ ç©ºæ ¼
-                end -= 1;
-                text += word;
-            }
-            else{
-                text += word + " ";        //è¯åæ˜¯ç©ºç™½ï¼ŒåŠ ç©ºæ ¼ï¼Œè·³è¿‡å¤šä½™ç©ºæ ¼
-            }
-        }
-        start = end + 1;
-    }
-    if(text != ""){      //å¦‚æœæœªæ­£ç¡®é—­åˆè¿˜æœ‰ä¸€æ®µæ–‡å­—æœªæ’å…¥
-        list_insert(content, count, text);
-    }
-    if(start >= size){    //æ­£ç¡®ä¿å­˜æ‰€æœ‰htmlå†…å®¹
-        return true;
-    }
-    return false;
-}
-
-//æŒ‰è¡ŒåŠ è½½htmlæ–‡ä»¶çš„tagå’Œæ–‡æœ¬å†…å®¹ï¼Œå­˜å‚¨åœ¨é¡ºåºè¡¨ä¸­
-bool load_html_by_line(sqlist &content, std::string path)
-{
-    transfer_path(path);       //è·å–æ­£ç¡®è·¯å¾„
-    std::ifstream file(path);
-    if(!file.is_open()){      //æ–‡ä»¶æ‰“å¼€å¤±è´¥
-        return false;
-    }
-    std::string line, word, tag, text = "";       //æ–‡ä»¶ä¸€è¡Œã€åˆ‡å‡ºçš„è¯ã€è¿ç»­æ–‡æœ¬ã€æ ‡ç­¾
-    std::string::size_type size;     //è¡Œé•¿
-    std::string::size_type start = 0, end, len;   //åˆ‡è¯å¼€å§‹å’Œç»“å°¾ã€è¯é•¿
-    int count = 1; 
-    bool filter = false;    //å†³å®šæ˜¯å¦è¿‡æ»¤(æ³¨é‡Š, csså’Œjavacriptéœ€è¿‡æ»¤)
-    bool tag_over = true;
-    bool note = false;
-    //ä¸€è¡Œä¸€è¡Œè¯»å–
-    while(std::getline(file, line)){      //è¯»å–å¤±è´¥æˆ–è€…åˆ°æ–‡ä»¶æœ«å°¾æ—¶ç»“æŸ
-        start = 0;
-        size = line.length();
-        while(start < size){
-            if(line[start] == ' '){      //é‡åˆ°ç©ºæ ¼è·³è¿‡
-                start += 1;
-                continue;
-            }
-            if(filter){     //éœ€è¦è¿‡æ»¤çš„å— 
-                end = find_first_delimiter(line, size, start, ">");    //è¿‡æ»¤å—çš„ç»“å°¾
-                if(note){               //å¦‚æœæ˜¯æ³¨é‡Šï¼Œéœ€è¦åˆ¤æ–­>å‰ä¸€ä¸ª
-                    if(line[end - 1] == '-'){ 
-                        note = false;
-                    }
-                    else {
-                        start = end + 1;
-                        continue;
-                    }
-                }
-                if(end < size && line[end] == '>'){         //å¦‚æœæ‰¾åˆ°è¿‡æ»¤å—ç»“å°¾ï¼Œè·³è¿‡è¿‡æ»¤å—
-                    filter = false;                           //è¿‡æ»¤çŠ¶æ€è®¾ä¸ºfalse
-                    start = end + 1;
-                    continue;
-                }
-                break;                                   //å½“å‰è¡Œè¿‡æ»¤å—æœªç»“æŸï¼Œä»ä¸‹ä¸€è¡Œç»§ç»­è¯»
-            }
-            //æ­£å¸¸è¯»å–æ ‡ç­¾å’Œæ–‡æœ¬
-            end = find_first_delimiter(line, size, start, "<");   //æŸ¥æ‰¾tag
-            if(!tag_over || end == start){        //å¦‚æœæ‰¾åˆ°æ ‡ç­¾
-                if(text != " " && text != ""){  //åˆ¤æ–­ä¹‹å‰çš„textæ˜¯å¦ä¸ºç©ºï¼Œä¸ä¸ºç©ºå…¥æ ˆ
-                    //textå­˜å…¥é¡ºåºè¡¨
-                    list_insert(content, count, text);   //æ’å…¥é¡ºåºè¡¨
-                    count ++;
-                    text = "";            //ç½®ç©ºï¼Œä¸‹ä¸€æ¬¡æŸ¥æ‰¾
-                }
-                end = find_first_delimiter(line, size, start, ">");  //æ‰¾åˆ°æ ‡ç­¾ç»“å°¾
-                len = end - start + 1;
-                if(!tag_over){      //ä¸Šä¸€è¡Œæ ‡ç­¾æœªé—­åˆï¼Œç»§ç»­åŠ ä¸Šä¸Šä¸€è¡Œæ ‡ç­¾
-                    tag += " " + line.substr(start, len);
-                }
-                else{               //å¦åˆ™è·å–æ–°æ ‡ç­¾
-                    tag = line.substr(start, len);      //è·å–æ ‡ç­¾å†…å®¹
-                }
-                if(end < size && line[end] == '>'){     //æ ‡ç­¾å·²é—­åˆ
-                        tag_over = true;
-                }
-                else{
-                    tag_over = false;               //æ ‡ç­¾æœªé—­åˆ
-                    break;
-                }
-                //åˆ¤æ–­æ˜¯å¦æ˜¯è¿‡æ»¤æ ‡ç­¾
-                if(len > 3){
-                    if(tag[1] == '!' && tag[2] == '-'){
-                        if (end < size && line[end] == '>' && line[end-1] == '-'){     //æ³¨é‡Šå—åªæœ‰ä¸€è¡Œ
-                            start = end + 1;
-                            continue;
-                        }
-                        note = true;
-                        start = end + 1;       //æ³¨é‡Šæœ‰å¤šè¡Œï¼Œç»§ç»­è¯»å–ä¸‹ä¸€è¡Œ
-                        filter = true;     
-                        break;       
-                    }   //å¦‚æœæ˜¯csså—æˆ–JavaScriptå—
-                    else if((tag[1] == 's' && tag[2] == 'c' ) || (tag[1] == 's' && tag[2] == 't' && tag[3] == 'y')){
-                        start = end + 1;         //æœ‰å¤šè¡Œï¼Œç»§ç»­è¯»å–ä¸‹ä¸€è¡Œ
-                        filter = true;
-                        continue;
-                    }
-                }
-                
-                if(end < size && line[end] == '>'){
-                    //tagå­˜å…¥é¡ºåºè¡¨
-                    list_insert(content, count, tag);
-                    tag = "";
-                }
-            }
-            else{      //æ‰¾åˆ°æ–‡æœ¬
-                end = find_first_delimiter(line, size, start, "< ");   //è¯ç»“æŸç¬¦ä½ç½®
-                word = line.substr(start, end - start);          //åˆ‡è¯
-                if(word == " " || word == ""){                //ç©ºè¯è·³è¿‡
-                    start += 1;
-                    continue;
-                }
-                if(end < size && line[end] == '<'){             //è¯åæ˜¯æ ‡ç­¾ï¼Œä¸è·³è¿‡æ ‡ç­¾å¼€å¤´ï¼Œè¯åä¸åŠ ç©ºæ ¼
-                    end -= 1;
-                    text += word;
-                }
-                else{
-                    text += word + " ";        //è¯åæ˜¯ç©ºç™½ï¼ŒåŠ ç©ºæ ¼ï¼Œå»é™¤å¤šä½™ç©ºæ ¼
-                }
-            }
             start = end + 1;
         }
+        else{      //ÕÒµ½ÎÄ±¾
+            end = find_first_delimiter(html, size, start, "< ");   //´Ê½áÊø·ûÎ»ÖÃ
+            len = end - start;
+            word = html.substr(start, len);          //ÇĞ´Ê
+            if(word == " " || word == ""){                //¿Õ´ÊÌø¹ı
+                start = end;
+                continue;
+            }
+            text += word + " ";        //´ÊºóÊÇ¿Õ°×£¬¼Ó¿Õ¸ñ£¬Ìø¹ı¶àÓà¿Õ¸ñ
+            start = end;
+        }
     }
-    if(text != ""){      //å¦‚æœæœªæ­£ç¡®é—­åˆè¿˜æœ‰ä¸€æ®µæ–‡å­—æœªæ’å…¥
-        list_insert(content, count, text);
+
+    if(text != ""){      //Èç¹ûÎ´ÕıÈ·±ÕºÏ»¹ÓĞÒ»¶ÎÎÄ×ÖÎ´²åÈë
+        elem.tag = text;
+        elem.type = Text;
+        list_insert(content, count, elem);
     }
-    if(file.eof()){     //è¯»å–ç»“æŸ
+    if(start >= size){    //ÕıÈ·±£´æËùÓĞhtmlÄÚÈİ
         return true;
     }
-    //æŸä¸€è¡Œè¯»å–å¤±è´¥
-    std::cout << "æ–‡ä»¶æœªå…¨éƒ¨è¯»å–" << std::endl;
     return false;
-
 }
 
 
-//è¿”å›æ ‡ç­¾tagçš„ç­‰çº§
-HtmlElemClass type_of_tag(elemtype tag)
+//¼ì²é¸¸±êÇ©ºÍ×Ó±êÇ©Ö®¼äµÄÇ¶Ì×¹ØÏµÊÇ·ñÕıÈ·
+bool check_nest_rule(elemtype felem, elemtype elem, std::string &error_info)
 {
-    //åˆ¤æ–­æ˜¯å¦æ˜¯è‡ªé—­åˆæ ‡ç­¾
-    for (const auto& elem : SINGLE_TAG) {
-        if(html_tag_cmp(tag, elem)){
-            return Single;
-        }
-    }
-    //åˆ¤æ–­æ˜¯å¦æ˜¯è¡Œå†…å…ƒç´ æˆ–è€…ç‰¹æ®Šå—çº§å…ƒç´ 
-    for (const auto& elem : LOWELEM) {
-        if(html_tag_cmp(tag, elem)){
-            return Inline;
-        }
-    }
-    //åˆ¤æ–­æ˜¯å¦æ˜¯å—çº§å…ƒç´ æˆ–ç‰¹æ®Šè¡Œå†…å…ƒç´ 
-    for (const auto& elem : HIGHELEM) {
-        if(html_tag_cmp(tag, elem)){
-            return Block;
-        }    
-    }
-    return None;
-}
-
-//æ£€æŸ¥çˆ¶æ ‡ç­¾å’Œå­æ ‡ç­¾ä¹‹é—´çš„åµŒå¥—å…³ç³»æ˜¯å¦æ­£ç¡®
-bool check_nest_rule(std::string ftag, std::string tag, HtmlElemClass tag_type)
-{
-     //åˆ¤æ–­è‡ªé—­åˆæ ‡ç­¾åµŒå¥—å…³ç³»
-    if(tag_type == Single){
-        if((tag == "area" && ftag != "map") ||
-            (tag == "col" && ftag != "clogroup" && ftag != "table" && ftag != "tbody") ||
-            (tag == "colgroup" && ftag != "table" && ftag != "tbody") ||
-            (tag == "param" && ftag != "object") ||
-            (tag == "track" && ftag != "audio" && ftag != "video") ||
-            ((tag == "option" || tag == "optgroup") && ftag != "select" && ftag != "datalist")){
+    if(felem.type == TextInline && elem.type != Text){     //ÎÄ±¾ĞĞÄÚÔªËØ²»ÄÜÇ¶Ì×·ÇÎÄ±¾
+        error_info = "±êÇ©" + elem.tag + "²»ÄÜÇ¶Ì×·ÇÎÄ±¾ÄÚÈİ£¬¶ø±êÇ©" + felem.tag + "²»ÊÇÎÄ±¾"; 
         return false;
-        }
     }
-    //åˆ¤æ–­è¡Œå†…å…ƒç´ åµŒå¥—å…³ç³»
-    else if(tag_type == Inline){ 
-        if( ((tag == "td" || tag == "th") && ftag != "table" && ftag != "thead" && ftag != "tbody" && ftag != "tfoot" && ftag != "colgroup" && ftag != "tr")){
+    if(felem.type <= Block && elem.type <= Block){   //¸¸ÔªËØºÍ×ÓÔªËØ¶¼²»ÊÇ±í¸ñÀàÔªËØ
+        
+        if(felem.tag_name == "a" && elem.tag_name == "a"){
+            error_info = "ÌØÊâĞĞÄÚÔªËØ<a>²»ÄÜÇ¶Ì××ÔÉí";
             return false;
         }
-    }//åˆ¤æ–­å—çº§å…ƒç´ åµŒå¥—å…³ç³»
-    else if(tag_type == Block){
-        if( (tag == "tr" && ftag != "thead" && ftag != "tbody" && ftag != "tfoot" && ftag != "colgroup")||
-        ((tag == "caption" || tag == "colgroup" ||  tag == "thead" || tag == "tbody" || tag == "tfoot" ) && ftag != "table")){
+        else if(felem.type == SpecialBlock && elem.type == SpecialBlock){     //Èç¹ûÁ½¸ö¶¼ÊÇÌØÊâ¿é¼¶ÔªËØ
+            error_info = "ÌØÊâ¿é¼¶ÔªËØ" + felem.tag + "Ö»ÄÜÇ¶Ì×ĞĞÄÚÔªËØ²»ÄÜÇ¶Ì×¿é¼¶ÔªËØ" + elem.tag;
+            return false;
+        }
+        else if(felem.type < elem.type && elem.tag_name != "a"){
+            error_info = "±êÇ©" + felem.tag + "Ö»ÄÜÇ¶Ì×ĞĞÄÚÔªËØ²»ÄÜÇ¶Ì×¿é¼¶ÔªËØ" + elem.tag;
             return false;
         }
     }
+    else if(felem.type > Block && elem.type > Block){           //¸¸ÔªËØºÍ×ÓÔªËØ¶¼ÊÇ±í¸ñÀàÔªËØ
+        if(felem.type == Table_1 && felem.tag_name == "caption"){
+            error_info = "±í¸ñÔªËØ+" +  felem.tag + "²»ÄÜÇ¶Ì×" + elem.tag; 
+            return false;
+        }
+        if(felem.type <= elem.type){
+            error_info = "±í¸ñÔªËØ" + felem.tag + "²»ÄÜÇ¶Ì×±í¸ñÔªËØ" + elem.tag;
+            return false;
+        }
+    }
+    else{                                            //¸¸ÔªËØºÍ×ÓÔªËØ¼ÈÓĞ±í¸ñÀàÔªËØÒ²ÓĞ·Ç±í¸ñÔªËØ
+        //Èç¹û¸¸ÔªËØÊÇ±í¸ñÔªËØÇÒ²»ÊÇtd¡¢th¡¢tr£¬×ÓÔªËØÊÇ·Ç±í¸ñÔªËØ
+        if(((felem.type != Table_3 && felem.type != Table_2) || felem.tag_name == "col") && elem.type <= Block){
+            error_info = "±í¸ñÔªËØ" + felem.tag + "²»ÄÜÖ±½ÓÇ¶Ì×ÔªËØ" + elem.tag;
+            return false;
+        }
+        else if ((felem.type < Block && elem.type > Block) || (felem.type == Block && elem.type < Table)){
+            error_info = "ÔªËØ" + felem.tag + "²»ÄÜÖ±½ÓÇ¶Ì×±í¸ñÔªËØ" + elem.tag;
+            return false;
+        }
+    }
+    // //ÅĞ¶ÏÌØÊâÒªÇóÇ¶Ì×¹ØÏµ
+    // if((elem.tag_name == "area" && felem.tag_name != "map") || 
+    //     (elem.tag_name == "param" && felem.tag_name != "object") ||
+    //     (elem.tag_name == "track" && felem.tag_name != "audio" && felem.tag_name != "video") ||
+    //     ((elem.tag_name == "option" || elem.tag_name == "optgroup") && felem.tag_name != "select" && felem.tag_name != "datalist")){
+    // return false;
+    // }
+    // if((elem.tag_name != "area" && felem.tag_name == "map") || 
+    //     (elem.tag_name != "param" && felem.tag_name == "object") ||
+    //     (elem.tag_name != "track" && (felem.tag_name == "audio" || felem.tag_name == "video")) ||
+    //     ((elem.tag_name != "option" && elem.tag_name != "optgroup") && (felem.tag_name == "select" || felem.tag_name == "datalist"))){
+    // return false;
+    // }
     return true;
 }
 
-//åˆ¤æ–­é¡ºåºè¡¨ä¸­çš„htmlä»£ç æ˜¯å¦åˆç†ï¼Œç”¨error_infoä¿å­˜é”™è¯¯ä¿¡æ¯
+//ÅĞ¶ÏË³Ğò±íÖĞµÄhtml´úÂëÊÇ·ñºÏÀí£¬ÓÃerror_info±£´æ´íÎóĞÅÏ¢
 bool check_html(sqlist content, std::string &error_info)
 {
-    stack Tags = nullptr;     //æ ‡ç­¾åç§°æ ˆ
-    init_stack(Tags);    //åˆå§‹åŒ–æ ˆ
-    elemtype tag, top; //æ ‡ç­¾ï¼Œæ ‡ç­¾æ ˆé¡¶æ ‡ç­¾
-    HtmlElemClass tag_type, top_type;    //æ ‡ç­¾çš„çº§åˆ«
-    size_type start, end;    //åˆ‡è¯å¼€å§‹ã€ç»“å°¾
-    int index = 0;      //é¡ºåºè¡¨ä¸‹æ ‡
+    stack Tags = nullptr;     //±êÇ©Ãû³ÆÕ»
+    init_stack(Tags);    //³õÊ¼»¯Õ»
+    elemtype elem, top; //±êÇ©£¬±êÇ©Õ»¶¥±êÇ©
+    int index = 0;      //Ë³Ğò±íÏÂ±ê
     while(index < content.length){
-        tag = content.elem[index];
-        if(tag[0] != '<'){    //ä¸æ˜¯æ ‡ç­¾è·³è¿‡
+        elem = content.elem[index];
+        if(elem.type == Text){    //Ìø¹ıÎÄ±¾
             index ++;
             continue;
         }
-        end = find_first_delimiter(tag, tag.length(), 0, "> ");
-        start = (tag[1] == '/')? 2: 1;     //å‰åæ ‡ç­¾åç§°èµ·å§‹ï¼Œstartå€¼1ã€ 2åˆ†åˆ«ä»£è¡¨å‰åæ ‡ç­¾
-        tag = content.elem[index].substr(start, end - start);   //åªä¿ç•™æ ‡ç­¾åç§°
-        tag_type = type_of_tag(tag);
-        if(!stack_empty(Tags)){    //å–æ ˆé¡¶å…ƒç´ 
+        if(!stack_empty(Tags)){    //È¡Õ»¶¥ÔªËØ
             get_top(Tags, top);
-            top_type = type_of_tag(top);
         }
         else{
-            top = "";
+            top.tag = "";
         }
-        //å¦‚æœæ˜¯é”™è¯¯æ ‡ç­¾
-        if(tag_type == None){
-            if(start == 1){
-                error_info = "æ ‡ç­¾<" + tag + ">æ˜¯éæ³•çš„htmlæ ‡ç­¾";
-            }
-            else{
-                error_info = "æ ‡ç­¾<" + tag + " />æ˜¯éæ³•çš„htmlæ ‡ç­¾";
-            }
+        //Èç¹ûÊÇ´íÎó±êÇ©
+        if(elem.type == None){
+            error_info = "±êÇ©" + elem.tag + "ÊÇ·Ç·¨µÄhtml±êÇ©";
             return false;
         }
-        //å¦‚æœæ˜¯è‡ªé—­åˆæ ‡ç­¾
-        if (tag_type == Single) {
-            if(top != "" and !check_nest_rule(top, tag, tag_type)){   //åˆ¤æ–­åµŒå¥—æ˜¯å¦æ­£ç¡®
-                error_info =  "æ ‡ç­¾<" + top + ">ä¸åº”è¯¥åµŒå¥—æ ‡ç­¾<" + tag + ">"; 
+        //Èç¹ûÊÇ×Ô±ÕºÏ±êÇ©
+        else if (elem.type == Single) {
+            if(top.tag != "" && !check_nest_rule(top, elem, error_info)){   //ÅĞ¶ÏÇ¶Ì×ÊÇ·ñÕıÈ·
                 return false;
             }
             index ++;
             continue;
         } 
-        //åˆ¤æ–­æ ‡ç­¾åˆæ³•æ€§
-        if(start == 1){    //åŒæ ‡ç­¾ç¬¬ä¸€ä¸ªæ ‡ç­¾
-            if(stack_empty(Tags)){   //æ ˆç©ºç›´æ¥å…¥
-                push(Tags, tag);
+        //ÅĞ¶Ï±êÇ©ºÏ·¨ĞÔ
+        if(elem.tag[1] != '/'){    //Ë«±êÇ©µÚÒ»¸ö±êÇ©
+            if(stack_empty(Tags)){   //Õ»¿ÕÖ±½ÓÈë
+                push(Tags, elem);
                 index ++;
                 continue;
             }
-            //ç‰¹æ®Šå—çº§å…ƒç´ <a>å•ç‹¬åˆ¤æ–­
-            if(tag == "a"){ 
-                if(top == "a"){
-                    error_info = "ç‰¹æ®Šè¡Œå†…å…ƒç´ <a>ä¸èƒ½åµŒå¥—<a>";
-                    return false;
-                }
-                push(Tags, tag);     //æ ˆé¡¶ä¸æ˜¯<a>ï¼Œå…¥æ ˆ
-            }
-            else if(top == "option" || top == "textarea"){
-                error_info = "æ ‡ç­¾<" + top + ">ä¸èƒ½åµŒå¥—æ–‡æœ¬å¤–å†…å®¹";
-                return false;  
-            }
-            else if(tag_type <= top_type){    //ä¸æ ˆé¡¶å…ƒç´ æ¯”è¾ƒï¼Œå¦‚æœå½“å‰å…ƒç´ ä¼˜å…ˆçº§å°äºç­‰äºæ ˆé¡¶å…ƒç´ ï¼Œå‹å…¥æ ˆä¸­
-                push(Tags, tag);
-            }
-            else{                           //å¦åˆ™ï¼Œè¿”å›é”™è¯¯ä¿¡æ¯
-                error_info =  "æ ‡ç­¾<" + top + ">ä¸åº”è¯¥åµŒå¥—æ ‡ç­¾<" + tag + ">"; 
+            if(!check_nest_rule(top, elem, error_info)){    //·ñÔòÅĞ¶ÏÕ»¶¥Óëµ±Ç°ÔªËØÇ¶Ì×¹ØÏµ
                 return false;
+            }
+            else{
+                push(Tags, elem);
             }
         }
-        else{      //åŒæ ‡ç­¾ç¬¬äºŒä¸ªæ ‡ç­¾ä¸æ ˆé¡¶å…ƒç´ æ¯”è¾ƒ
-            if(stack_empty(Tags)){    //æ ˆå·²ç©ºï¼Œè¯´æ˜ç¼ºå°‘å½“å‰æ ‡ç­¾çš„å‰æ ‡ç­¾
-                error_info = "æ ‡ç­¾: </" + tag + ">ç¼ºå°‘å‰æ ‡ç­¾<"+ tag +">";
+        else{      //ºó±êÇ©ÓëÕ»¶¥ÔªËØ±È½Ï
+            if(stack_empty(Tags)){    //Õ»ÒÑ¿Õ£¬ËµÃ÷È±ÉÙµ±Ç°±êÇ©µÄÇ°±êÇ©
+                error_info = "±êÇ©: " + elem.tag + "È±ÉÙÇ°±êÇ©"+ elem.tag + "";
                 return false;
             }
-            //æ ˆä¸­æœ‰å…ƒç´ ,å½“å‰æ ‡ç­¾ä¸æ ˆé¡¶æ ‡ç­¾æ¯”è¾ƒ
-            if(html_tag_cmp(tag, top)){     //å¦‚æœå½“å‰å…ƒç´ ç­‰äºæ ˆé¡¶å…ƒç´ ï¼Œæ ˆé¡¶å…ƒç´ å‡ºæ ˆ
+            //Õ»ÖĞÓĞÔªËØ,µ±Ç°±êÇ©ÓëÕ»¶¥±êÇ©±È½Ï
+            if(html_tag_cmp(elem.tag_name, top.tag_name)){     //Èç¹ûµ±Ç°ÔªËØµÈÓÚÕ»¶¥ÔªËØ£¬Õ»¶¥ÔªËØ³öÕ»
                 pop(Tags, top);
             }  
-            else{   //æ ˆé¡¶å…ƒç´ å’Œå½“å‰å…ƒç´ ä¸åŒ¹é…ï¼Œè¾“å‡ºé”™è¯¯ä¿¡æ¯
-                error_info = "æ ‡ç­¾<" + top + ">ä¸æ ‡ç­¾</" + tag + ">ä¸åŒ¹é…"; 
+            else{   //Õ»¶¥ÔªËØºÍµ±Ç°ÔªËØ²»Æ¥Åä£¬Êä³ö´íÎóĞÅÏ¢
+                error_info = "±êÇ©" + top.tag + "È±ÉÙ±ÕºÏ±êÇ©</" + top.tag_name + ">, ¶ø²»ÊÇ" + elem.tag; 
                 return false;
             }
         }   
-        index ++;        //èŠ‚ç‚¹åç§»
+        index ++;        //½ÚµãºóÒÆ
     }
     return true;
 }
 
 
-void get_xpath(sqlist &xpath, std::string path)
+void get_htmlpath(sqlist &xpath, std::string path)
 {
-    size_t start = 1, end;       //pathå­ä¸²å¼€å§‹å’Œç»“æŸä½ç½®
-    size_t size = path.length();     //pathé•¿åº¦
-    elemtype tag;
-    int count = 1;     
+    size_t start, end;       //path×Ó´®¿ªÊ¼ºÍ½áÊøÎ»ÖÃ
+    size_t size = path.length();     //path³¤¶È
+    elemtype elem;
+    int count = 1;    
+    start = (path[0] == '/' || path[0] == '\\')? 1: 0; 
     while(start < size){
-        if(path[start] == ' '){     //è·³è¿‡ç©ºæ ¼
+        if(path[start] == ' '){     //Ìø¹ı¿Õ¸ñ
             start ++;
             continue;
         }
-        end = find_first_delimiter(path, size, start, "/");     //xpathåˆ†éš”ä½ç½®
-        tag = path.substr(start, end - start);              //æ ‡ç­¾åç§°  
-        list_insert(xpath, count, tag);         //æ’å…¥xpathè¡¨
+        end = find_first_delimiter(path, size, start, "/\\");     //xpath·Ö¸ôÎ»ÖÃ
+        elem.tag_name = path.substr(start, end - start);              //±êÇ©Ãû³Æ
+        elem.type = type_of_tag(elem.tag_name);  
+        list_insert(xpath, count, elem);         //²åÈëxpath±í
         count ++;
-        start = end + 1;    //ç»§ç»­éå†
+        start = end + 1;    //¼ÌĞø±éÀú
     }
 }
 
-//ç»™å®šå•çº¯ç”±Tagæ„æˆçš„ç®€åŒ–çš„XPATHè·¯å¾„pathï¼Œè¾“å‡ºæ‰€æœ‰èƒ½å¤ŸåŒ¹é…è¯¥è·¯å¾„çš„èŠ‚ç‚¹çš„OuterHTML 
+void out_tag(elemtype elem, elemtype ftag)
+{
+    if(elem.type == Text){  //Èç¹ûÊÇÎÄ±¾Ö±½ÓÊä³ö
+        std::cout << elem.tag;
+    }
+    else if(elem.type == Single){    //Èç¹ûÊÇ×Ô±ÕºÏ±êÇ©Êä³öÍê»»ĞĞ
+        std::cout << elem.tag << std::endl;
+    }
+    else if(elem.tag[1] == '/'){
+        if(ftag.type == Text && (ftag.type == Block || ftag.type == SpecialBlock) && ftag.tag_name != "a"){
+            std::cout << std::endl;
+        }
+        std::cout << elem.tag << std::endl;
+        if(((elem.type == Block && elem.tag_name != "a") || elem.type == SpecialBlock) && ftag.type == Text){
+            std::cout << std::endl;
+        }
+    }
+    else{
+        if(ftag.type == Text && elem.type != Inline && elem.tag_name != "a"||
+        ftag.tag[1] != '/'){
+            std::cout << std::endl;
+        }
+        std::cout << elem.tag;
+    }
+}
+
+//¸ø¶¨µ¥´¿ÓÉTag¹¹³ÉµÄ¼ò»¯µÄXPATHÂ·¾¶path£¬Êä³öËùÓĞÄÜ¹»Æ¥Åä¸ÃÂ·¾¶µÄ½ÚµãµÄOuterHTML 
 bool out_html(sqlist content, sqlist xpath)
 {
-    int index = 0, xindex = 0;      //contentä¸‹æ ‡ä½ç½®,xpathä¸‹æ ‡ä½ç½®
-    elemtype xtag = xpath.elem[0], tag, tag_name, top;      //xpathæ ‡ç­¾ï¼Œcontentæ ‡ç­¾, tagæ ‡ç­¾åæ ‡ç­¾
-    size_type start, end;
-    stack Tags = nullptr;     //å­˜æ”¾contentä¸­çš„æ ‡ç­¾
+    int index = 0, xindex = 0;      //contentÏÂ±êÎ»ÖÃ,xpathÏÂ±êÎ»ÖÃ
+    elemtype xtag = xpath.elem[0], elem, top, ftag;      //xpath±êÇ©£¬content±êÇ©, tag±êÇ©ºó±êÇ©
+    ftag.type = None;
+    stack Tags = nullptr;     //´æ·ÅcontentÖĞµÄ±êÇ©
     init_stack(Tags);
-    int pairs = 1;     //å‰åæ ‡ç­¾æˆå¯¹æ•°ç›®
-    HtmlElemClass tag_type;
-    bool output = false;
-    //å¦‚æœæ˜¯æ ¹ç›®å½•ï¼Œè¾“å‡ºæ‰€æœ‰æ ‡ç­¾
+    int pairs = 0;     //Ç°ºó±êÇ©³É¶ÔÊıÄ¿
+    bool output = false, find = false;
+    //Èç¹ûÊÇ¸ùÄ¿Â¼£¬Êä³öËùÓĞ±êÇ©
     if(xpath.length == 0){     
         for(int i = 0; i < content.length; i++){
-            tag = content.elem[i];
-            if(tag[0] != '<'){  //å¦‚æœæ˜¯æ–‡æœ¬ç›´æ¥è¾“å‡º
-                std::cout << tag;
-                continue;
-            }
-            end = find_first_delimiter(tag, tag.length(), 0, "> ");
-            start = (tag[1] == '/')? 2: 1;
-            tag_name = tag.substr(start, end - start);   //åªä¿ç•™æ ‡ç­¾åç§°
-            tag_type = type_of_tag(tag_name);
-            if(type_of_tag(tag) == Single){    //å¦‚æœæ˜¯è‡ªé—­åˆæ ‡ç­¾è¾“å‡ºå®Œæ¢è¡Œ
-                std::cout << tag << std::endl;
-            }
-            else if(tag[1] == '/'){  //å¦‚æœæ˜¯åæ ‡ç­¾
-                if(tag_type == Inline || tag_name == "a"){
-                    std::cout << tag;
-                }
-                else 
-                {
-                    std::cout << std::endl << tag;
-                }
-                std::cout << std::endl;
-            }    //å¦‚æœæ˜¯å‰æ ‡ç­¾
-            else{
-                if(tag_type == Block && tag_name != "a"){
-                    std::cout << tag << std::endl;
-                }
-                else{
-                    std::cout << tag ;        //å‰æ ‡ç­¾è¾“å‡ºå®Œä¸æ¢è¡Œ
-                }
-            }
+            elem = content.elem[i];
+            out_tag(elem, ftag);
+            ftag = elem;
         }
         return true;
     }
-    //å¦‚æœä¸æ˜¯æ ¹ç›®å½•
+    //Èç¹û²»ÊÇ¸ùÄ¿Â¼
     while(index < content.length){
-        tag = content.elem[index];
-        if(tag[0] != '<'){      //è·³è¿‡æ–‡æœ¬å†…å®¹
+        elem = content.elem[index];
+        if(index > 0){ftag = content.elem[index - 1];}
+        if(pairs){
+            if(output){
+                out_tag(elem, ftag);
+            }
+            if(elem.tag[1] == '/'){  //Èç¹ûÊÇºó±êÇ©
+                pairs --;
+                
+            }    //Èç¹ûÊÇÇ°±êÇ©
+            else if(elem.type > Single){
+                pairs ++;
+            }
             index ++;
             continue;
         }
-        //è·å¾—æ ‡ç­¾åç§°
-        end = find_first_delimiter(tag, tag.length(), 0, "> ");
-        start = (tag[1] == '/')? 2: 1;
-        tag_name = tag.substr(start, end - start);   //åªä¿ç•™æ ‡ç­¾åç§°
-        tag_type = type_of_tag(tag_name);
-
-        if(start == 1){    //å¦‚æœæ˜¯å·¦æ ‡ç­¾å’Œè‡ªé—­åˆæ ‡ç­¾
-            if(tag_name == xtag){      //å¦‚æœhtmlå½“å‰æ ‡ç­¾tagä¸xpathè·¯å¾„å½“å‰æ ‡ç­¾ç›¸åŒï¼Œtagå…¥æ ˆ
-                push(Tags, tag_name);
+        if(elem.type == Text){      //Ìø¹ıÎÄ±¾ÄÚÈİ
+            index ++;
+            continue;
+        }
+        if(elem.tag[1] != '/'){    //Èç¹ûÊÇ×ó±êÇ©ºÍ×Ô±ÕºÏ±êÇ©
+            if(elem.tag_name == xtag.tag_name){      //Èç¹ûhtmlµ±Ç°±êÇ©tagÓëxpathÂ·¾¶µ±Ç°±êÇ©ÏàÍ¬£¬tagÈëÕ»
+                push(Tags, elem);
                 index ++;
                 xindex ++;
-                if(xindex == xpath.length){     //æ‰¾åˆ°äº†xpathè·¯å¾„ä¸‹ï¼Œæ‰“å°å†…å®¹
+                if(xindex == xpath.length){     //ÕÒµ½ÁËxpathÂ·¾¶ÏÂ£¬´òÓ¡ÄÚÈİ
                     output = true;
+                    find = true;
                     pop(Tags, top);
-                    get_top(Tags, top);
-                    xindex --;              //xpathä¸‹æ ‡å›æº¯
-                    std::cout << tag << std::endl;
-                    if(tag_type == Single){
-                        pairs = 0;
-                    }
-                    else{
-                        pairs = 1;
-                    }
-                    while(pairs && index < content.length){   //çŸ¥é“æ‰¾åˆ°xpathæœ€åä¸€ä¸ªæ ‡ç­¾çš„åæ ‡ç­¾
-                        tag = content.elem[index];
-                        if(tag[0] != '<'){  //å¦‚æœæ˜¯æ–‡æœ¬ç›´æ¥è¾“å‡º
-                            std::cout << tag << std::endl;
-                            index ++;
-                            continue;
-                        }
-                        //è·å¾—æ ‡ç­¾åç§°
-                        end = find_first_delimiter(tag, tag.length(), 0, "> ");
-                        start = (tag[1] == '/')? 2: 1;
-                        tag_name = tag.substr(start, end - start);   //åªä¿ç•™æ ‡ç­¾åç§°
-                        tag_type = type_of_tag(tag_name);
-                        if(type_of_tag(tag) == Single){    //å¦‚æœæ˜¯è‡ªé—­åˆæ ‡ç­¾è¾“å‡ºå®Œæ¢è¡Œ
-                            std::cout << tag << std::endl;
-                        }
-                        else if(tag[1] == '/'){  //å¦‚æœæ˜¯åæ ‡ç­¾
-                            pairs --;
-                            std::cout << tag << std::endl;
-                        }    //å¦‚æœæ˜¯å‰æ ‡ç­¾
-                        else{
-                            pairs ++;
-                            std::cout << tag << std::endl;
-                        }
-                        index ++;
-                    }
+                    xindex --;              //xpathÏÂ±ê»ØËİ
+                    out_tag(elem, ftag);
+                    pairs = (elem.type == Single)? 0: 1;
                 }
                 xtag = xpath.elem[xindex];
                 continue;
             }
-            else{        //å¦åˆ™è·³è¿‡å½“å‰æ ‡ç­¾å†…å®¹
-                if(tag_type == Single){
-                    pairs = 0;
-                }
-                else{
-                    pairs = 1;
-                }
+            else{        //·ñÔòÌø¹ıµ±Ç°±êÇ©ÄÚÈİ
+                pairs = (elem.type == Single)? 0: 1;
                 index ++;
-                while(pairs && index < content.length){   
-                    tag = content.elem[index];
-                    if(tag[0] != '<'){  //å¦‚æœæ˜¯æ–‡æœ¬è·³è¿‡
-                        index ++;
-                        continue;
-                    }
-                    //è·å¾—æ ‡ç­¾åç§°
-                    end = find_first_delimiter(tag, tag.length(), 0, "> ");
-                    start = (tag[1] == '/')? 2: 1;
-                    tag_name = tag.substr(start, end - start);   //åªä¿ç•™æ ‡ç­¾åç§°
-                    tag_type = type_of_tag(tag_name);
-                    if(tag_type == Single || tag[0] != '<'){    //å¦‚æœæ˜¯è‡ªé—­åˆæ ‡ç­¾æˆ–è€…æ–‡æœ¬è·³è¿‡
-                       index ++;
-                       continue;
-                    }
-                    else if(tag[1] == '/'){   //å¦‚æœæ˜¯åæ ‡ç­¾
-                        pairs --;
-                    }
-                    else {     //å¦‚æœå‰æ ‡ç­¾
-                        pairs ++;
-                    }
-                    index ++;
-                }
+                output = false;
                 continue;
             }
         }
-        
-        else if(!stack_empty(Tags)){       //å¦‚æœæ˜¯åæ ‡ç­¾
+        else if(!stack_empty(Tags)){       //Èç¹ûÊÇºó±êÇ©
             get_top(Tags, top);
-            if(top == tag_name){   //åæ ‡ç­¾ä¸æ ˆé¡¶å…ƒç´ ç›¸åŒï¼Œå¼¹å‡ºæ ˆé¡¶
+            if(top.tag_name == elem.tag_name){   //ºó±êÇ©ÓëÕ»¶¥ÔªËØÏàÍ¬£¬µ¯³öÕ»¶¥
                 pop(Tags, top);
                 xindex --;
                 xtag = xpath.elem[xindex];
@@ -648,122 +554,82 @@ bool out_html(sqlist content, sqlist xpath)
         }
         index ++;
     }
-    if(!output){
+    if(!find){
         return false;
     }
     return true;
 }
 
 
-//è¾“å‡ºé¡µé¢ä¸­ç¬¦åˆè·¯å¾„æ¡ä»¶çš„elementsä¸­çš„æ‰€æœ‰æ–‡æœ¬å†…å®¹
+//Êä³öÒ³ÃæÖĞ·ûºÏÂ·¾¶Ìõ¼şµÄelementsÖĞµÄËùÓĞÎÄ±¾ÄÚÈİ
 bool out_text(sqlist content, sqlist xpath)
 {
-    int index = 0, xindex = 0;      //contentä¸‹æ ‡ä½ç½®,xpathä¸‹æ ‡ä½ç½®
-    elemtype xtag = xpath.elem[0], tag, tag_name, top;      //xpathæ ‡ç­¾ï¼Œcontentæ ‡ç­¾, tagæ ‡ç­¾åæ ‡ç­¾
-    size_type start, end;
-    stack Tags = nullptr;     //å­˜æ”¾contentä¸­çš„æ ‡ç­¾
+    int index = 0, xindex = 0;      //contentÏÂ±êÎ»ÖÃ,xpathÏÂ±êÎ»ÖÃ
+    elemtype xtag = xpath.elem[0], elem, top;      //xpath±êÇ©£¬content±êÇ©, tag±êÇ©ºó±êÇ©
+    stack Tags = nullptr;     //´æ·ÅcontentÖĞµÄ±êÇ©
     init_stack(Tags);
-    int pairs = 1;     //å‰åæ ‡ç­¾æˆå¯¹æ•°ç›®
-    HtmlElemClass tag_type;
-    bool output = false;
-    //å¦‚æœæ˜¯æ ¹ç›®å½•ï¼Œè¾“å‡ºæ‰€æœ‰æ–‡æœ¬
+    int pairs = 0;     //Ç°ºó±êÇ©³É¶ÔÊıÄ¿
+    bool output = false, find = false;
+    //Èç¹ûÊÇ¸ùÄ¿Â¼£¬Êä³öËùÓĞÎÄ±¾
     if(xpath.length == 0){     
         for(int i = 0; i < content.length; i++){
-            tag = content.elem[i];
-            if(tag[0] != '<'){  //å¦‚æœæ˜¯æ–‡æœ¬ç›´æ¥è¾“å‡º
-                std::cout << tag;
+            elem = content.elem[i];
+            if(elem.tag[0] != '<'){  //Èç¹ûÊÇÎÄ±¾Ö±½ÓÊä³ö
+                std::cout << elem.tag << std::endl << std::endl;
             }
         }
         return true;
     }
-    //å¦‚æœä¸æ˜¯æ ¹ç›®å½•
+    //Èç¹û²»ÊÇ¸ùÄ¿Â¼
     while(index < content.length){
-        tag = content.elem[index];
-        if(tag[0] != '<'){      //è·³è¿‡æ–‡æœ¬å†…å®¹
+        elem = content.elem[index];
+        if(pairs){
+            if(output && elem.type == Text){
+                std::cout << elem.tag << std::endl;
+            }
+            if(elem.tag[1] == '/'){  //Èç¹ûÊÇºó±êÇ©
+                pairs --;
+                
+            }    //Èç¹ûÊÇÇ°±êÇ©
+           else if(elem.type > Single){
+                pairs ++;
+            }
             index ++;
             continue;
         }
-        //è·å¾—æ ‡ç­¾åç§°
-        end = find_first_delimiter(tag, tag.length(), 0, "> ");
-        start = (tag[1] == '/')? 2: 1;
-        tag_name = tag.substr(start, end - start);   //åªä¿ç•™æ ‡ç­¾åç§°
-        tag_type = type_of_tag(tag_name);
-
-        if(start == 1){    //å¦‚æœæ˜¯å·¦æ ‡ç­¾å’Œè‡ªé—­åˆæ ‡ç­¾
-            if(tag_name == xtag){      //å¦‚æœhtmlå½“å‰æ ‡ç­¾tagä¸xpathè·¯å¾„å½“å‰æ ‡ç­¾ç›¸åŒï¼Œtagå…¥æ ˆ
-                push(Tags, tag_name);
+        if(elem.tag[0] != '<'){      //Ìø¹ıÎÄ±¾ÄÚÈİ
+            index ++;
+            continue;
+        }
+        if(elem.tag[1] != '/'){    //Èç¹ûÊÇ×ó±êÇ©ºÍ×Ô±ÕºÏ±êÇ©
+            if(elem.tag_name == xtag.tag_name){      //Èç¹ûhtmlµ±Ç°±êÇ©tagÓëxpathÂ·¾¶µ±Ç°±êÇ©ÏàÍ¬£¬tagÈëÕ»
+                push(Tags, elem);
                 index ++;
                 xindex ++;
-                if(xindex == xpath.length){     //æ‰¾åˆ°äº†xpathè·¯å¾„ä¸‹ï¼Œæ‰“å°å†…å®¹
+                if(xindex == xpath.length){     //ÕÒµ½ÁËxpathÂ·¾¶ÏÂ£¬´òÓ¡ÄÚÈİ
                     pop(Tags, top);
-                    get_top(Tags, top);
-                    xindex --;              //xpathä¸‹æ ‡å›æº¯
-                    if(tag[0] != '<'){
-                        output = true;
-                        std::cout << tag << std::endl;
+                    xindex --;              //xpathÏÂ±ê»ØËİ
+                    output = true;
+                    find = true;
+                    if(elem.type == Text){
+                        std::cout << elem.tag << std::endl;
                     }
-                    if(tag_type == Single){
-                        pairs = 0;
-                    }
-                    else{
-                        pairs = 1;
-                    }
-                    while(pairs && index < content.length){   //çŸ¥é“æ‰¾åˆ°xpathæœ€åä¸€ä¸ªæ ‡ç­¾çš„åæ ‡ç­¾
-                        tag = content.elem[index];
-                        if(tag[0] != '<'){  //å¦‚æœæ˜¯æ–‡æœ¬ç›´æ¥è¾“å‡º
-                            output = true;
-                            std::cout << tag << std::endl;
-                        }
-                        else if(tag[1] == '/'){  //å¦‚æœæ˜¯åæ ‡ç­¾
-                            pairs --;
-                        }    //å¦‚æœæ˜¯å‰æ ‡ç­¾
-                        else{
-                            pairs ++;
-                        }
-                        index ++;
-                    }
+                    pairs = (elem.type == Single)? 0: 1;
                 }
                 xtag = xpath.elem[xindex];
                 continue;
             }
-            else{        //å¦åˆ™è·³è¿‡å½“å‰æ ‡ç­¾å†…å®¹
-                if(tag_type == Single){
-                    pairs = 0;
-                }
-                else{
-                    pairs = 1;
-                }
+            else{        //·ñÔòÌø¹ıµ±Ç°±êÇ©ÄÚÈİ
+                pairs = (elem.type == Single)? 0: 1;
                 index ++;
-                while(pairs && index < content.length){   
-                    tag = content.elem[index];
-                    if(tag[0] != '<'){  //å¦‚æœæ˜¯æ–‡æœ¬è·³è¿‡
-                        index ++;
-                        continue;
-                    }
-                    //è·å¾—æ ‡ç­¾åç§°
-                    end = find_first_delimiter(tag, tag.length(), 0, "> ");
-                    start = (tag[1] == '/')? 2: 1;
-                    tag_name = tag.substr(start, end - start);   //åªä¿ç•™æ ‡ç­¾åç§°
-                    tag_type = type_of_tag(tag_name);
-                    if(tag_type == Single || tag[0] != '<'){    //å¦‚æœæ˜¯è‡ªé—­åˆæ ‡ç­¾æˆ–è€…æ–‡æœ¬è·³è¿‡
-                       index ++;
-                       continue;
-                    }
-                    else if(tag[1] == '/'){   //å¦‚æœæ˜¯åæ ‡ç­¾
-                        pairs --;
-                    }
-                    else {     //å¦‚æœå‰æ ‡ç­¾
-                        pairs ++;
-                    }
-                    index ++;
-                }
+                output = false;
                 continue;
             }
         }
         
-        else if(!stack_empty(Tags)){       //å¦‚æœæ˜¯åæ ‡ç­¾
+        else if(!stack_empty(Tags)){       //Èç¹ûÊÇºó±êÇ©
             get_top(Tags, top);
-            if(top == tag_name){   //åæ ‡ç­¾ä¸æ ˆé¡¶å…ƒç´ ç›¸åŒï¼Œå¼¹å‡ºæ ˆé¡¶
+            if(top.tag_name == elem.tag_name){   //ºó±êÇ©ÓëÕ»¶¥ÔªËØÏàÍ¬£¬µ¯³öÕ»¶¥
                 pop(Tags, top);
                 xindex --;
                 xtag = xpath.elem[xindex];
@@ -771,21 +637,22 @@ bool out_text(sqlist content, sqlist xpath)
         }
         index ++;
     }
-    if(!output){
+    if(!find){
         return false;
     }
     return true;
 }
- 
 
-void Menu(sqlist &content, stack &S)
+
+void Menu(sqlist &content, stack &S, std::string filepath)
 {
-    int exit = 1;      //å†³å®šç¨‹åºæ˜¯å¦é€€å‡º
-    //æ“ä½œç”¨åˆ°çš„å˜é‡
+    int exit = 1;      //¾ö¶¨³ÌĞòÊÇ·ñÍË³ö
+    //²Ù×÷ÓÃµ½µÄ±äÁ¿
     stack result = nullptr;
     init_stack(result); 
     std::string enter;
-    std::string path;  
+    std::string input; 
+    std::string path;
     sqlist xpath;
     xpath.elem = nullptr;
     init_list(xpath, 100);
@@ -793,84 +660,92 @@ void Menu(sqlist &content, stack &S)
 
     while(exit)
     {
-        std::cout << "------------------------è¯·æ ¹æ®æ“ä½œè¾“å…¥ç›¸åº”çš„å‘½ä»¤-----------------------" << std::endl; 
-        std::cout << "************************0.Exit(é€€å‡º)***********************************" << std::endl; 
-        std::cout << "************************1.LoadHTML(åŠ è½½HTMLæ–‡ä»¶)***********************" << std::endl; 
-        std::cout << "************************2.CheckHTML(æ£€æŸ¥HTMLä»£ç åˆæ³•æ€§)****************" << std::endl; 
-        std::cout << "************************3.OutHTML(è¾“å‡ºXPATHè·¯å¾„ä¸‹çš„ä»£ç )***************" << std::endl;
-        std::cout << "************************4.OutText(è¾“å‡ºXPATHè·¯å¾„ä¸‹çš„æ–‡æœ¬)***************" << std::endl;
-        std::cout << "************************5.URLParser(è§£æURL)***************************" << std::endl;
-        //è¾“å…¥æŒ‡ä»¤
-        std::string input;
-        std::cout << "è¾“å…¥ä½ çš„é€‰æ‹©ï¼š" ;      //é€‰æ‹©æ“ä½œ
-        if (!(std::cin >> input)) {  // å¦‚æœè¾“å…¥é”™è¯¯
-            std::cin.clear();         // æ¸…é™¤é”™è¯¯æ ‡å¿—
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // å¿½ç•¥é”™è¯¯è¾“å…¥ç›´åˆ°ä¸‹ä¸€ä¸ªæ¢è¡Œç¬¦
-            std::cout << "------è¯·æ£€æŸ¥è¾“å…¥æ˜¯å¦æ­£ç¡®, å¹¶é‡æ–°è¾“å…¥å‘½ä»¤-----" << std::endl;
-            continue;            // ç»§ç»­ä¸‹ä¸€æ¬¡å¾ªç¯è¿­ä»£
+        std::cout << "################################### MENU ########################################" << std::endl;
+        std::cout << "##    ------------------input order or number as follows -------------------   ##" << std::endl; 
+        std::cout << "##          ***********           0.Exit                    ***********        ##" << std::endl; 
+        std::cout << "##          ***********           1.LoadHTML                ***********        ##" << std::endl; 
+        std::cout << "##          ***********           2.CheckHTML               ***********        ##" << std::endl; 
+        std::cout << "##          ***********           3.OutHTML                 ***********        ##" << std::endl;
+        std::cout << "##          ***********           4.OutText                 ***********        ##" << std::endl;
+        std::cout << "#################################################################################" << std::endl;
+        std::cout << std::endl;
+        //ÊäÈëÖ¸Áî
+        std::cout << "Command/input order> " ;      //Ñ¡Ôñ²Ù×÷
+        if (!(std::cin >> input)) {  // Èç¹ûÊäÈë´íÎó
+            std::cin.clear();         // Çå³ı´íÎó±êÖ¾
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // ºöÂÔ´íÎóÊäÈëÖ±µ½ÏÂÒ»¸ö»»ĞĞ·û
+            std::cout << "------Please check if the input is correct and re-enter the command-----" << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));    //ÔİÍ£1Ãë
+            continue;            // ¼ÌĞøÏÂÒ»´ÎÑ­»·µü´ú
         }
         std::cout << std::endl;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  //æ¸…ç©ºç¼“å†²åŒº
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  //Çå¿Õ»º³åÇø
         Order order = get_order(input);
-        //è¿›è¡Œæ“ä½œ
+        //½øĞĞ²Ù×÷
         switch (order)
         {
         case Exit:
             exit = 0;
             destroy_stack(result);
             destroy_list(xpath);
-            std::cout << "----------------å·²é€€å‡º----------------" << std::endl;
+            std::cout << "........" << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));    //ÔİÍ£1Ãë
+            std::cout << "----------------alreadly exit----------------" << std::endl;
             break;
         case LoadHTML:
             clear_list(content);
-            std::cout << "è¯·è¾“å…¥æ–‡ä»¶è·¯å¾„: " ;
-            std::getline(std::cin, path);
+            // std::cout << "Command/ÇëÊäÈëÎÄ¼şÂ·¾¶> " ;
+            // std::getline(std::cin, path);
             
-            if(load_html_by_file(content, path)){
-                std::cout << "åŠ è½½æˆåŠŸ" << std::endl;
-                list_print(content);
+            if(load_html_by_file(content, filepath)){
+                std::cout << "Load successfully" << std::endl;
+                //list_print(content);
             }
             else{
-                std::cout << "Warning: åŠ è½½å¤±è´¥, è¯·æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨æˆ–è¾“å…¥æ˜¯å¦æœ‰è¯¯" << std::endl;
+                std::cout << "Loading failed, please check if the file exists or if the input is incorrect" << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(1));    //ÔİÍ£1Ãë
+                continue;
             }
             break;
         case CheckHTML:
+            std::cout << "......" << std::endl;
             if(check_html(content, error_info)){
-                std::cout <<"Correct: HTMLä»£ç åˆæ³•" << std::endl;
+                std::cout <<"Html is correct" << std::endl;
             }
             else{
-                std::cout << "Wrong: HTMLä»£ç ä¸åˆæ³•, ä¸åˆæ³•çš„åœ°æ–¹å¦‚ä¸‹: " << std::endl;
+                std::cout << "Wrong: The HTML code is illegal, the illegal places are as follows: " << std::endl;
                 std::cout << error_info << std::endl;
             }
             break;
         case OutHTML:
-            std::cout << "è¯·è¾“å…¥è¦æŸ¥æ‰¾åˆ°çš„XPATHè·¯å¾„: " ;
+            clear_list(xpath);       //Çå¿ÕÖ®Ç°µÄxpath±í
+            std::cout << "Command/input xpath> " ;
             std::getline(std::cin, path);
-            clear_list(xpath);       //æ¸…ç©ºä¹‹å‰çš„xpathè¡¨
-            get_xpath(xpath, path);
-            std::cout << "æŸ¥æ‰¾åˆ°çš„å†…å®¹å¦‚ä¸‹: "<<std::endl;
+            get_htmlpath(xpath, path);
+            std::cout << std::endl << "Find the following: "<<std::endl;
             if(!out_html(content, xpath)){
-                std::cout << "è¯¥è·¯å¾„ä¸å­˜åœ¨" << std::endl;
+                std::cout << "The path does not exist or is entered incorrectly" << std::endl;
             }
             break;
         case OutText:
-            std::cout << "è¯·è¾“å…¥è¦æŸ¥æ‰¾åˆ°çš„XPATHè·¯å¾„: " ;
+            std::cout << "Command/input xpath> " ;
             std::getline(std::cin, path);
-            clear_list(xpath);        //æ¸…ç©ºä¹‹å‰çš„xpathè¡¨
-            get_xpath(xpath, path);
-            std::cout << "æŸ¥æ‰¾åˆ°çš„å†…å®¹å¦‚ä¸‹: "<<std::endl;
+            clear_list(xpath);        //Çå¿ÕÖ®Ç°µÄxpath±í
+            get_htmlpath(xpath, path);
+            std::cout << "Find the following: "<<std::endl;
             if(!out_text(content, xpath)){
-                std::cout << "è¯¥è·¯å¾„ä¸å­˜åœ¨" << std::endl;
+                std::cout << "The path does not exist or is entered incorrectly" << std::endl;
             }
             break;
-        case URLParser:
+        case XPathSearch:
             break;
         default:
-            std::cout << "------é€‰æ‹©é”™è¯¯ï¼Œè¯·é‡æ–°é€‰æ‹©-----" << std::endl;
-            break;
+            std::cout << "------Wrong selection, please select again-----" << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));    //ÔİÍ£1Ãë
+            continue;
         }
-        if (exit){   //é¿å…æ“ä½œå®Œç›´æ¥æ‰“å°èœå•ï¼Œå½±å“é˜…è¯»ï¼ˆé™¤é€€å‡ºæ“ä½œå¤–ï¼‰
-            std::cout << "--------è¯·è¾“å…¥ä»»æ„å†…å®¹ç»§ç»­æ‰§è¡Œæ“ä½œ--------" << std::endl;
+        if (exit){   //±ÜÃâ²Ù×÷ÍêÖ±½Ó´òÓ¡²Ëµ¥£¬Ó°ÏìÔÄ¶Á£¨³ıÍË³ö²Ù×÷Íâ£©
+            std::cout << "--------Please enter anything to continue the operation--------" << std::endl;
             std::getline(std::cin, enter);
             std::cout << std::endl;
         }
@@ -878,15 +753,19 @@ void Menu(sqlist &content, stack &S)
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
+    if(argc < 2){
+        return 0;
+    }
+    std::string filepath(argv[1]);
     stack tag = nullptr;
     sqlist content;
     content.elem = nullptr;
-    init_stack(tag);      //åˆå§‹åŒ–tagæ ˆå’Œcontenté¡ºåºè¡¨
+    init_stack(tag);      //³õÊ¼»¯tagÕ»ºÍcontentË³Ğò±í
     init_list(content, INIT_SIZE);
 
-    Menu(content, tag);
+    Menu(content, tag, filepath);
 
     destroy_stack(tag);
     destroy_list(content);

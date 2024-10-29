@@ -7,8 +7,8 @@
 
 #include<iostream>
 #include<stdbool.h>
+#include"node.h"
 
-typedef std::string elemtype;
 
 //链栈节点
 typedef struct stacknode{
@@ -16,9 +16,6 @@ typedef struct stacknode{
     stacknode* next;   //指针域
 }stacknode, *stack;
 
-
-//节点比较函数
-int datacmy(elemtype e1, elemtype e2);
 
 //栈的初始化
 void init_stack(stack &S);

@@ -1,26 +1,6 @@
 #include"linkstack.h"
 
 
-//节点比较函数
-int datacmy(elemtype e1, elemtype e2)
-{
-     if (e1.length() > e2.length()){    //e1 > e2 返回1
-        return 1;
-    }
-    else if(e1.length() < e2.length()){  //e1 < e2 返回-1
-        return -1;
-    }
-    else{
-        if (e1 > e2){
-            return 1;
-        }
-        else if (e1 < e2){
-            return -1;
-        }
-    }
-    return 0;     //e1 = e2 返回0
-}
-
 //栈的初始化
 void init_stack(stack &S)
 {

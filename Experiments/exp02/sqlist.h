@@ -4,6 +4,7 @@
 #include<assert.h>
 #include<string.h>
 #include<iostream>
+#include"node.h"
 
 
 /*扩容策略
@@ -25,8 +26,6 @@
 */
 #define INIT_SIZE 4096
 
-typedef std::string elemtype;  // 存放单词
-typedef std::string::size_type size_type;    //顺序表元素大小的类型
 
 typedef struct{
     elemtype *elem;   //顺序表
@@ -44,11 +43,6 @@ int datacompare(elemtype e1, elemtype e2);
 //链表重申请内存,申请成功自动释放原内存空间
 elemtype* list_realloc(elemtype* src, elemtype* end, size_t size);
 
-//表满扩容
-bool capacity_expansion(sqlist &L);
-
-//空间利用率过低，缩容
-bool capacity_reduce(sqlist &L);
 
 //顺序表初始化
 void init_list(sqlist &L);
@@ -95,23 +89,12 @@ void list_delete(sqlist &L, int i, elemtype &e);
 */
 
 //返回从start开始第一个分隔符的位置,分隔符包含中文和英文
-size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, int &language);
+size_t find_first_delimiter(std::string str, size_t size, size_t start, int &language);
 
 //返回从start开始第一个匹配子串的位置，找不到返回size,有空实现kmp算法
-size_type find_first_substr(std::string str, std::string pattern, size_type start, size_type size);
+size_t find_first_substr(std::string str, std::string pattern, size_t start, size_t size);
 
 //返回从start开始第一个分隔符的位置，传入参数delimiters作为分隔符
-size_type find_first_delimiter(elemtype str, elemtype::size_type size, elemtype::size_type start, std::string delimiters);
+size_t find_first_delimiter(std::string str, size_t size, size_t start, std::string delimiters);
 
-//创造顺序表
-void create_list(sqlist &S, std::string str);
-
-//覆盖原字符串
-void coverlist(sqlist &L, elemtype str);
-
-//从键盘输入链表内容(尾插)
-void create_list_from_input(sqlist &L);
-
-//从文件读入链表内容(尾插)
-void create_list_from_file(sqlist &L, std::string path);
 

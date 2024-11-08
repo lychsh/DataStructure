@@ -351,19 +351,19 @@ bool check_nest_rule(elemtype felem, elemtype elem, std::string &error_info)
             return false;
         }
     }
-    // //判断特殊要求嵌套关系
-    // if((elem.tag_name == "area" && felem.tag_name != "map") || 
-    //     (elem.tag_name == "param" && felem.tag_name != "object") ||
-    //     (elem.tag_name == "track" && felem.tag_name != "audio" && felem.tag_name != "video") ||
-    //     ((elem.tag_name == "option" || elem.tag_name == "optgroup") && felem.tag_name != "select" && felem.tag_name != "datalist")){
-    // return false;
-    // }
-    // if((elem.tag_name != "area" && felem.tag_name == "map") || 
-    //     (elem.tag_name != "param" && felem.tag_name == "object") ||
-    //     (elem.tag_name != "track" && (felem.tag_name == "audio" || felem.tag_name == "video")) ||
-    //     ((elem.tag_name != "option" && elem.tag_name != "optgroup") && (felem.tag_name == "select" || felem.tag_name == "datalist"))){
-    // return false;
-    // }
+    //判断特殊要求嵌套关系
+    if((elem.tag_name == "area" && felem.tag_name != "map") || 
+        (elem.tag_name == "param" && felem.tag_name != "object") ||
+        (elem.tag_name == "track" && felem.tag_name != "audio" && felem.tag_name != "video") ||
+        ((elem.tag_name == "option" || elem.tag_name == "optgroup") && felem.tag_name != "select" && felem.tag_name != "datalist")){
+    return false;
+    }
+    if((elem.tag_name != "area" && felem.tag_name == "map") || 
+        (elem.tag_name != "param" && felem.tag_name == "object") ||
+        (elem.tag_name != "track" && (felem.tag_name == "audio" || felem.tag_name == "video")) ||
+        ((elem.tag_name != "option" && elem.tag_name != "optgroup") && (felem.tag_name == "select" || felem.tag_name == "datalist"))){
+    return false;
+    }
     return true;
 }
 

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include<cmath>
+#include<vector>
 
 
 void get_next(int next[], std::string pattern)
@@ -60,8 +61,39 @@ void menu()
 }
 
 
+
+//字符串切割
+void split_string(std::string str, std::string delimiter, std::vector<std::string> &result)
+{
+    result.clear();
+    int start = 0, end;
+    int size = str.length();    //字符串长度
+    while(start < size){
+        if(str[start] == ' '){    //跳过空格
+            start++;
+            continue;
+        }
+        end = str.find_first_of(delimiter, start);   //子串结尾
+        if(end < 0 || end >= size){      //找到字符串结尾，说明只剩最后一个子串
+            result.push_back(str.substr(start, size - start));   //加入子串
+            break;
+        }
+        if(end != start){    //找到子串
+            result.push_back(str.substr(start, end - start));   //加入子串
+            start= end + 1;     //继续向后切割
+        }
+        else{
+            start ++;
+        }
+    }
+}
+
 int main()
 {
-    menu();
+    std::string Usage = ".class.class";
+    std::vector<std::string> result;
+    split_string(Usage, ".", result);
+
+    std::cout << "\t" << "\n" << "haha" << std::endl;
     return 0;
 }

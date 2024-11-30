@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        ".gdbinit": "plaintext",
         "iostream": "cpp",
         "ostream": "cpp",
         "string": "cpp",
@@ -60,6 +61,9 @@
         "span": "cpp",
         "stop_token": "cpp",
         "thread": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "unordered_set": "cpp",
+        "cstdarg": "cpp",
+        "set": "cpp"
     }
 }

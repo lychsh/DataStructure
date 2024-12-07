@@ -7,6 +7,9 @@
 #include<cmath>
 #include<vector>
 
+#define CURL_STATICLIB
+#include <curl/curl.h>
+
 
 void get_next(int next[], std::string pattern)
 {
@@ -88,12 +91,65 @@ void split_string(std::string str, std::string delimiter, std::vector<std::strin
     }
 }
 
+
+// 回调函数：处理网页内容并将其存储到 html 字符串中
+size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
+    size_t total_size = size * nmemb;
+    std::string* html = reinterpret_cast<std::string*>(userp);
+    html->append(reinterpret_cast<char*>(contents), total_size);
+    return total_size;
+}
+
+// 获取网页内容的函数
+bool fetch_url(std::string &html, const std::string& url) {
+    CURL* curl = nullptr;
+    CURLcode res;
+    
+    // 初始化 libcurl
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+    
+    if (curl) {
+        // 设置要访问的 URL
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        
+        // 设置回调函数来获取网页内容
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &html);
+        
+        // 执行请求
+        res = curl_easy_perform(curl);
+        
+        // 检查请求是否成功
+        if (res != CURLE_OK) {
+            html.clear();  // 如果请求失败，返回空字符串
+            curl_easy_cleanup(curl);
+            curl_global_cleanup();
+            return false;
+        }
+        
+        // 清理 curl
+        curl_easy_cleanup(curl);
+    }
+    
+    // 清理 libcurl
+    curl_global_cleanup();
+    //预处理换行符
+    int size = html.length();
+    for(int i = 0; i < size; i++){
+        if(html[i] == '\n'){
+            html[i] = ' ';
+        }
+    }
+    return true;  // 读取成功
+}
+
 int main()
 {
-    std::string Usage = ".class.class";
-    std::vector<std::string> result;
-    split_string(Usage, ".", result);
-
-    std::cout << "\t" << "\n" << "haha" << std::endl;
+    std::string html;
+    std::string url = "https://grs.ruc.edu.cn/";
+    if(fetch_url(html, url)){
+        std::cout << html << std::endl;
+    }
     return 0;
 }

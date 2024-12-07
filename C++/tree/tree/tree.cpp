@@ -24,10 +24,9 @@ void init_tree(CSTree &T)
 //根据tag标签字符串创建树结点
 void create_node(CSTree &node, Tag tag)
 {
-    if(node){     //如果节点不存在，创建新结点
-        std::cerr << "Exist Error : 节点已经存在" << std::endl;
+    if(!node){    //如果节点不存在，创建新结点
+        init_tree(node);
     }
-    init_tree(node);
     if(tag.content[0] != '<'){     //如果是文本，tag_name就是tag
         node->data.tag_name = tag.content;
         node->data.type = Text;
@@ -45,6 +44,10 @@ void create_node(CSTree &node, Tag tag)
     start = end + 1;
     //依次获取标签属性
     while(start < size && end < size){
+        if(tag.content[start] == ' '){     //跳过空格
+            start++;
+            continue;
+        }
         end = tag.content.find_first_of("=>", start);
         if(end != start){
             attr.name = tag.content.substr(start, end - start);   //获取属性名
@@ -252,7 +255,7 @@ void create_tree(CSTree &T, std::vector<Tag> &tags)
     std::stack<CSTree> nodes;          //树的结点辅助栈
     std::stack<TagType> types;      //树的结点类型辅助栈
     bool lastend =false;      //标示上一个标签是否是结束标签
-    if(tags[0].content[1] == '!' && tags[0].content[2] == 'D'){    //<!DOCTYPE html>标签作为根节点
+    if(tags[0].content[1] == '!' && tags[0].content[2] == 'D' || tags[0].content[2] == 'd'){    //<!DOCTYPE html>标签作为根节点
         T->data.type = WholeTag;
         T->data.end = tags[0].end;
         T->data.tag_name = tags[0].content.substr(1, tags[0].content.length() - 2);
@@ -273,7 +276,7 @@ void create_tree(CSTree &T, std::vector<Tag> &tags)
         if(tag.type == StartTag || tag.type == Single || tag.type == WholeTag || tag.type == Text){    
             CSTree cur_node = nullptr;     //当前结点
             create_node(cur_node, tag);   //创建新结点 
-            cur_node->data.start = tag.start;  
+            cur_node->data.start = tag.start;     
             if(nodes.empty()){     //如果未遍历完nodes栈已空，说明html有错误标签或未正确闭合
                 std::cerr << "html Error: html存在错误" << std::endl;
                 return ;
@@ -283,8 +286,6 @@ void create_tree(CSTree &T, std::vector<Tag> &tags)
             }
             else{ //如果栈顶标签是自闭合、标签块或者文本
                 top_node->nextsibling = cur_node;   //当前标签是栈顶标签的右孩子(nextnextsibling)
-                nodes.pop();          //如果上一个tag块遍历完，出栈
-                types.pop();
             } 
             if(tag.type == Single || tag.type == Text){      //自闭合标签结束位置
                 cur_node->data.end = tag.end;
@@ -294,9 +295,10 @@ void create_tree(CSTree &T, std::vector<Tag> &tags)
             nodes.push(cur_node);             //当前标签入栈
         }
         else if(tag.type == EndTag){    //如果当前结点是结束标签
-            if(lastend || top_type == Text){      //如果上一个标签是结束标签,弹出栈顶
+            while(top_type != StartTag){
                 nodes.pop();    
                 types.pop();
+                top_type = types.top();     
             }
             top_node = nodes.top();
             top_node->data.end = tag.end;

@@ -37,7 +37,10 @@
                 "-g",
                 "${fileDirname}\\*.cpp",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-I/usr/include/curl", // 包含curl头文件的路径
+                "-L/usr/lib",          // curl库文件路径
+                "-lcurl"               // 链接curl库
                 
             ],
             "options": {

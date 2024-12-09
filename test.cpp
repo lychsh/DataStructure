@@ -92,64 +92,49 @@ void split_string(std::string str, std::string delimiter, std::vector<std::strin
 }
 
 
-// 回调函数：处理网页内容并将其存储到 html 字符串中
-size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
-    size_t total_size = size * nmemb;
-    std::string* html = reinterpret_cast<std::string*>(userp);
-    html->append(reinterpret_cast<char*>(contents), total_size);
-    return total_size;
-}
 
-// 获取网页内容的函数
-bool fetch_url(std::string &html, const std::string& url) {
-    CURL* curl = nullptr;
-    CURLcode res;
-    
-    // 初始化 libcurl
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    curl = curl_easy_init();
-    
-    if (curl) {
-        // 设置要访问的 URL
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        
-        // 设置回调函数来获取网页内容
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &html);
-        
-        // 执行请求
-        res = curl_easy_perform(curl);
-        
-        // 检查请求是否成功
-        if (res != CURLE_OK) {
-            html.clear();  // 如果请求失败，返回空字符串
-            curl_easy_cleanup(curl);
-            curl_global_cleanup();
-            return false;
-        }
-        
-        // 清理 curl
-        curl_easy_cleanup(curl);
+//切割输入的选择器表达式
+void split_selector(std::string selector, std::vector<std::string> &selectors)
+{
+    int start = 0, end;
+    int size = selector.length();
+    std::string delimiters1 = ".#*,>+~[";
+    std::string delimiters2 = ".#*,>+~] ";
+    if(delimiters1.find(selector[0], 0) == -1){    //如果表示式第一个为标签，加上一个空格
+        selector = " " + selector;
+        size++;
     }
-    
-    // 清理 libcurl
-    curl_global_cleanup();
-    //预处理换行符
-    int size = html.length();
-    for(int i = 0; i < size; i++){
-        if(html[i] == '\n'){
-            html[i] = ' ';
+    while(start < size){
+        if(selector[start] == ' '){
+            start ++;
+            continue;
+        } 
+        end = selector.find_first_of(delimiters2, start + 1); 
+        if(end == -1){
+            end = size;
         }
+        if((selector[start] >= 'A' && selector[start] <= 'Z')
+            || selector[start] >= 'a' && selector[start] <= 'z'){
+            selectors.push_back(" ");
+            selectors.push_back(selector.substr(start, end - start));
+        }
+        else if(delimiters1.find(selector[start], 0) != -1){
+            selectors.push_back(selector.substr(start, 1));
+            selectors.push_back(selector.substr(start + 1, end - start - 1));
+        }
+        else {
+            std::cout << "错误" << std::endl;
+            return ;
+        }
+        start = end;
     }
-    return true;  // 读取成功
 }
 
 int main()
 {
-    std::string html;
-    std::string url = "https://grs.ruc.edu.cn/";
-    if(fetch_url(html, url)){
-        std::cout << html << std::endl;
-    }
+    std::string select = ".class.class  href div+ div > div~a [div~=class1] div";
+    std::vector<std::string> selectors;
+    split_selector(select, selectors);
+
     return 0;
 }

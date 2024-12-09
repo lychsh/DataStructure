@@ -9,7 +9,7 @@
 const std::vector<std::string> SINGLE_TAGs = {
         "base", "link", "img", "input", "br", "hr", "!DOCTYPE", "area",
         "command", "embed", "keygen",  "meta", "param", 
-        "source", "track", "wbr", "li", "!doctype"
+        "source", "track", "wbr", "!doctype"
 };
 
 //标签类别

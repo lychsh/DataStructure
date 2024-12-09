@@ -23,17 +23,9 @@ enum Operation{
     List            //打印nodeslist列表
 };
 
-//选择器类型
-enum Selector{ 
-    None,    //
-    TagS,   //标签选择器
-    ClassAttrS,    //class属性选择器
-    IdAttrS,       //id属性选择器
-    OtherAttrS,    //其他属性选择器
-};
 
 int Counter = 0;   //全局操作计数器
-const int PrintSTagLen = 50;   //选择器得到列表输出标签最大长度(不完整标签)  
+const int PrintSTagLen = 50;   //选择器得到列表输出标签最大长度, 超过时用填充符省略  
 const std::string Padding  = "...";    //node标签内容超出最大长度时填充符
 
 
@@ -49,14 +41,14 @@ int split_string(std::string str, char delimiter, std::vector<std::string> &resu
             continue;
         }
         end = str.find_first_of(delimiter, start);   //子串结尾
-        if(end < 0 || end >= size){      //找到字符串结尾，说明只剩最后一个子串
+        if(end < 0 || end >= size){                  //找到字符串结尾，说明只剩最后一个子串
             result.push_back(str.substr(start, size - start));   //加入子串
             count ++;
             break;
         }
-        if(end != start){    //找到子串
+        if(end != start){           //找到子串
             result.push_back(str.substr(start, end - start));   //加入子串
-            start= end + 1;     //继续向后切割
+            start= end + 1;     //继续切割剩余子串
             count ++;
         }
         else{
@@ -97,7 +89,7 @@ bool match_by_subvalue(CSTree node, std::string attrname, std::string subvalue)
 }
 
 //通过属性值子串匹配结点
-bool match_by_subattrvalue(CSTree node, std::string attrname, std::vector<std::string> subvalues)
+bool match_by_subattrvalues(CSTree node, std::string attrname, std::vector<std::string> subvalues)
 {
     if(!node){     //node结点为空，直接返回
         return false;
@@ -172,7 +164,7 @@ bool match_by_valueprefix(CSTree node, std::string attrname, std::string valuepr
     return false;  
 }
 
-//通过属性值结尾匹配
+//通过属性值后缀匹配
 bool match_by_valuesuffix(CSTree node, std::string attrname, std::string valuesuffix)
 {
     if(!node){     //node结点为空，直接返回
@@ -189,7 +181,7 @@ bool match_by_valuesuffix(CSTree node, std::string attrname, std::string valuesu
 
 
 
-//通过标签匹配结点
+//通过标签名匹配结点
 bool match_by_tagname(CSTree node, std::string tagname)
 {
     if(!node){     //node结点为空，直接返回
@@ -214,6 +206,505 @@ bool match_by_tag_attr(CSTree node, std::string tag, std::string attrname, std::
         }
     return false;  
 }
+
+
+
+//属性选择
+void select_by_attr(CSTree T, std::string attrname, std::string attrvalue, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_attr(T, attrname, attrvalue)){   //单独判断根结点   
+            nodes_set.insert(T);  
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            if(match_by_attr(node, attrname, attrvalue)){   //匹配节点   
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+//属性名选择器
+void select_by_attrname(CSTree T, std::string attrname, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_attrname(T, attrname)){   //单独判断根结点   
+            nodes_set.insert(T);    
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            if(match_by_attrname(node, attrname)){   //匹配节点   
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+//标签选择器
+void select_by_tag(CSTree T, std::string tag, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_tagname(T, tag)){   //单独判断根结点    
+            nodes_set.insert(T);  
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            if(match_by_tagname(node, tag)){   //匹配节点   
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+
+
+//标签属性选择器
+void select_by_tag_attr(CSTree T, std::string tag, std::string attrname,
+                         std::string attrvalue, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_tag_attr(T, tag, attrname, attrvalue)){   //单独判断根结点      
+            nodes_set.insert(T);   
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            if(match_by_tag_attr(node, tag, attrname, attrvalue)){   //匹配节点   
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+//多属性值选择器
+void select_by_attr_multivalue(CSTree T, std::string attrname, std::vector<std::string> subvalues, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_subattrvalues(T, attrname, subvalues)){   //先判断根结点  
+            nodes_set.insert(T);    
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;    //在左子树上进行查找
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            if(match_by_subattrvalues(node, attrname, subvalues)){   //匹配节点   
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+
+//元素多属性值选择器
+void select_by_tag_attr_multivalue(CSTree T, std::string tag_name, std::string attrname, std::vector<std::string> subvalues, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_tagname(T, tag_name) && match_by_subattrvalues(T, attrname, subvalues)){   //先判断根结点  
+            nodes_set.insert(T);    
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;    //在左子树上进行查找
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            if(match_by_tagname(node, tag_name) && match_by_subattrvalues(node, attrname, subvalues)){   //匹配节点   
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+
+//单属性值子串选择器
+void select_by_attr_subvalue(CSTree T, std::string attrname, std::string subvalue, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_subvalue(T, attrname, subvalue)){   //先判断根结点  
+            nodes_set.insert(T);      
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;    //在左子树上进行查找
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            if(match_by_subvalue(node, attrname, subvalue)){   //匹配节点   
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+//根据属性值的开头（后接-符或者就是完整单词）选择
+void select_by_headvalue(CSTree T, std::string attrname, std::string headvalue, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_valueprefix(T, attrname, headvalue + "-") || match_by_attr(T, attrname, headvalue)){   //先判断根结点  
+            nodes_set.insert(T);   
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;    //在左子树上进行查找
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            //如果属性值以headvalue-为前缀或者就是headvalue
+            if(match_by_subvalue(node, attrname, headvalue + "-") || match_by_attr(node, attrname, headvalue)){     
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+
+//根据属性值的前缀选择
+void select_by_prefix(CSTree T, std::string attrname, std::string valueprefix, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_valueprefix(T, attrname, valueprefix)){   //先判断根结点  
+            nodes_set.insert(T);    
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;    //在左子树上进行查找
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            //如果属性值以headvalue-为前缀或者就是headvalue
+            if(match_by_subvalue(node, attrname, valueprefix)){     
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+//根据属性值后缀进行查找
+void select_by_suffix(CSTree T, std::string attrname, std::string valuesuffix, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    if(!T){     //树空直接返回
+        return ;
+    }
+    if(!tree_search){       //非树搜索，只对根结点访问
+        if(match_by_valuesuffix(T, attrname, valuesuffix)){   //先判断根结点  
+            nodes_set.insert(T);    
+        }
+        return ;
+    }
+    CSTree node = T->firstchild;    //在左子树上进行查找
+    std::stack<CSTree> nodes;
+    while(!nodes.empty() || node){   //栈非空或者node存在
+        while(node){      //向左访问结点
+            //如果属性值以headvalue-为前缀或者就是headvalue
+            if(match_by_valuesuffix(node, attrname, valuesuffix)){     
+                nodes_set.insert(node);    //加入新结点
+            }
+            nodes.push(node);    //访问过的结点入栈 
+            node = node->firstchild;   //向左继续走
+        }
+        node = nodes.top();     //最左孩子出栈
+        nodes.pop();
+        node = node->nextsibling;  //向右一步
+    }
+}
+
+//id属性选择器
+void id_selector(CSTree T, std::string select, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    std::string attrvalue;
+    int start = select.find_first_not_of(" #", 0);
+    int end = select.find_first_of(" ", start);        //属性值结尾
+    attrvalue = select.substr(1, end - start);         //获取属性值
+
+    //在T树进行查找
+    select_by_attr(T, "id", attrvalue, nodes_set, tree_search);
+}
+
+//标签选择器
+void tag_selector(CSTree T, std::string tag_name, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    //从T树上查找
+    select_by_tag(T, tag_name, nodes_set, tree_search);
+}
+
+//标签class属性选择器
+void tag_class_selector(CSTree T, std::string select, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    std::vector<std::string> tag_class;   //tag和class属性值
+    //获取标签和class
+    int end = select.find_first_of(".", 0);
+    std::string tag_name = select.substr(0, end);
+    std::vector<std::string> subvalues;
+    split_string(select.substr(end + 2, select.length() - end), '.', subvalues);
+
+    //从T树上查找
+    select_by_tag_attr_multivalue(T, tag_name, "class", subvalues, nodes_set, tree_search);     
+}
+
+
+//class属性选择器
+void class_selector(CSTree T, std::string select, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    std::vector<std::string> subvalues;
+    int num = split_string(select, '.', subvalues);   //按点进行切割
+    if(num <= 0){       //select为空，直接返回
+        return ;
+    }
+    //从T树上查找
+    select_by_attr_multivalue(T, "class", subvalues, nodes_set, tree_search);
+}
+
+
+
+//子选择器， element1>element2，选择element1的直接子标签element2
+void child_selector(std::unordered_set<CSTree> &nodes_set)
+{
+    std::unordered_set<CSTree> tmpset;
+    for(auto &node: nodes_set){   //匹配每个node的相邻兄弟元素
+        if(node->firstchild){
+            tmpset.insert(node->firstchild);
+        }
+    }
+    swap(tmpset, nodes_set);     //更新集合
+}
+
+//相邻兄弟选择器
+void adjacen_sibling_selector(std::unordered_set<CSTree> &nodes_set)
+{
+    std::unordered_set<CSTree> tmpset;
+    for(auto &node: nodes_set){   //匹配每个node的相邻兄弟元素
+        if(node->nextsibling){
+            tmpset.insert(node->nextsibling);
+        }
+    }
+    swap(tmpset, nodes_set);     //更新集合
+}
+
+//兄弟选择器
+void sibling_selector(std::unordered_set<CSTree> &nodes_set)
+{
+    std::unordered_set<CSTree> tmpset;
+    CSTree node;
+    for(auto &n: nodes_set){   //匹配每个node的相邻兄弟元素
+        node = n->nextsibling;
+        while(node){
+            tmpset.insert(node);
+            node = node->nextsibling;
+        }
+    }
+    swap(tmpset, nodes_set);     //更新集合
+}
+
+
+//属性选择器
+void attr_selector(CSTree T, std::string select, std::unordered_set<CSTree> &nodes_set, bool tree_search)
+{
+    std::string attrname, attrvalue;      // 属性名称和值
+    int start, end;
+    start = select.find_first_not_of("[ ", 0);
+    end = select.find_first_of("=~|^]$ ");
+    if(start <= 0 || end <= 0){           //如果选择器表达式不完整
+        std::cout << "\033[32mOut[" << Counter << "]: \033[0mselector expression is incomplete" << std::endl;
+        nodes_set.clear();                //清空集合，返回
+        return ;
+    }
+    attrname = select.substr(start, end - start);           //获取属性名
+    
+    start = select.find_first_of("=~|^&$]", start);
+    char s = select[start];
+    start = select.find_first_not_of(" = ~|^&$", start);    //获取属性值
+    if(start > 0){
+        end = select.find_first_of(" ]", start);
+        attrvalue = select.substr(start, end - start);
+    }
+    // 根据属性选择器类型进行查询
+    if(s == ']'){               //根据属性名查找
+        select_by_attrname(T, attrname, nodes_set, tree_search);
+    }
+    else if(s == '='){          //根据属性名和属性值查找
+        select_by_attr(T, attrname, attrvalue, nodes_set, tree_search);
+    }
+    else if(s == '~'){          //选择属性值子串查找
+        select_by_attr_subvalue(T, attrname, attrvalue, nodes_set, tree_search);
+    }
+    else if(s == '|'){          //根据属性值的开头（后接-符或者就是完整属性值）查找
+        select_by_headvalue(T, attrname, attrvalue, nodes_set, tree_search);
+    }  
+    else if(s == '^'){          //根据属性值前缀查找
+        select_by_prefix(T, attrname, attrvalue, nodes_set, tree_search);
+    }
+    else if(s == '$'){          //根据属性值后缀查找
+        select_by_suffix(T, attrname, attrvalue, nodes_set, tree_search);
+    }
+    else {
+        std::cout <<  "\033[32mOut[" << Counter << "]:\033[0m " << "\033[31mthe selector of child_selecotr should be '[attribute (operation) (attrvaue)]. operation: =~|^&\033[0m" << std::endl;
+        return ;
+    }
+
+}
+
+
+//查询函数，根据css选择器规则进行查询，按逗号选择器并列查询
+void query(CSTree T, std::string selector, std::vector<CSTree> &nodeslist)
+{
+    if(!T){
+        std::cout << "\033[32mOut[" << Counter << "]: \033[0m" << "\033[31mWarning: Haven't open file or fetch url\033[0m" << std::endl;
+        return ;
+    }
+    std::vector<std::string> total_selectors;       //并列选择表,以逗号分隔
+    std::vector<std::string> selectors;             //选择器表
+    std::unordered_set<CSTree> tmpset, nodes_set;
+    bool tree_search = true;                        //是否在整个树上查找
+    nodes_set.insert(T);                            //插入根节点
+    int total_num = split_string(selector, ',', total_selectors);     //先用逗号切割得到并列选择表
+    for(int i = 0; i < total_num; i ++){                       //对并列表查询
+        int num = split_string(total_selectors[i], ' ', selectors);      //分别用空格切割得到选择器表
+        for(int j = 0; j < num; j++){                          //对选择器表查询
+            // 如果是子选择器，兄弟选择器或者相邻兄弟选择器，更新node集合，下一次查找只对子树根结点查找
+            if(selectors[j] == ">"){         //子选择器
+                child_selector(nodes_set);
+                tree_search = false;
+                continue;
+            }
+            else if(selectors[j] == "+"){         //相邻兄弟选择器
+                adjacen_sibling_selector(nodes_set);
+                tree_search = false;
+                continue;
+            }
+            else if(selectors[j] == "~"){         //兄弟选择器
+                sibling_selector(nodes_set);
+                tree_search = false;
+                continue;
+            }
+            //如果是其他类型选择器，在整个树上查找
+            for(const CSTree& node: nodes_set){
+                if(selectors[j][0] == '.'){                       //class选择器
+                    class_selector(node, selectors[j], tmpset, tree_search);
+                }
+                else if(selectors[j].find("[", 0) != -1){         //属性选择器
+                    attr_selector(node, selectors[j], tmpset, tree_search);
+                }
+                else if(selectors[j][0] == '#'){                  //id选择器
+                    id_selector(node, selectors[j], tmpset, tree_search);
+                }
+                else if(selectors[j] == "*"){                     //通配符选择器
+                    tag_selector(node, "*", tmpset, tree_search);
+                }
+                else if(selectors[j].find(".", 0) != -1){         //标签class选择器
+                    tag_class_selector(node, selectors[j], tmpset, tree_search);
+                }
+                else {                                      //标签选择器
+                    tag_selector(node, selectors[j], tmpset, tree_search);
+                }
+            }
+            tree_search = true;
+            swap(tmpset, nodes_set);                      //更新nodes集合
+            tmpset.clear();                               //清空缓存集合
+        }
+        // 将 set 中的元素复制到node列表中
+        for(const CSTree& node: nodes_set){
+            nodeslist.push_back(node);
+        }
+        nodes_set.clear();              //清空集合
+        nodes_set.insert(T);            //压入根结点
+    }
+    // 按照在html中的先后顺序排序
+    std::sort(nodeslist.begin(), nodeslist.end(), 
+              [](const CSTree& a, const CSTree& b) {
+                  return a->data.start < b->data.start;
+              });
+}
+
 
 // 回调函数：处理网页内容并将其存储到 html 字符串中
 size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -242,7 +733,6 @@ bool fetch_url(std::string &html, const std::string& url) {
         
         // 执行请求
         res = curl_easy_perform(curl);
-        
         // 检查请求是否成功
         if (res != CURLE_OK) {
             html.clear();  // 如果请求失败，返回空字符串
@@ -250,11 +740,9 @@ bool fetch_url(std::string &html, const std::string& url) {
             curl_global_cleanup();
             return false;
         }
-        
         // 清理 curl
         curl_easy_cleanup(curl);
     }
-    
     // 清理 libcurl
     curl_global_cleanup();
     //预处理换行符
@@ -268,8 +756,13 @@ bool fetch_url(std::string &html, const std::string& url) {
     if(start > 0){       //去除多余字符串
         html = html.substr(start, html.length() - start);
     }
+    //将网页源码转为小写
+    std::transform(html.begin(), html.end(), html.begin(),
+        [](unsigned char c) { return std::tolower(c); });
     return true;  // 读取成功
 }
+
+
 //打印文本结点
 void print_text(CSTree node)
 {
@@ -281,35 +774,37 @@ void print_text(CSTree node)
     }
 }
 
-//打印开始标签、自闭合标签和文本标签
-void print_tag(CSTree node)
-{
-    TagType type = node->data.type;
-    if(type == Text){    //文本直接打印
-        std::cout << node->data.tag_name << std::endl;
-    }
-    else if(type == StartTag || type == Single){    //如果是自闭合标签或者开始标签
-        std::cout << "<" << node->data.tag_name;    //打印标签名
-        for(const auto& attr: node->data.attrs){    //依次打印标签属性
-            std::cout << " " << attr.name << "=\"" << attr.value << "\"";
-        }
-        std::cout << ">" ;      //打印>符号
-    }
-    else{   //未知标签的打印
-        std::cout << "<! UNKNOW...>" ;
-    }
-}
-
 //先序遍历，获取标签内的所有文本
 void out_inner_text(CSTree T)
 {
     if(!T){      //空结点返回
         return ;
     }
+    std::cout << "\033[32mOut[" << Counter << "]: \033[0m" << std::endl;
     std::cout << "[" ;
     PreOrderTraverse(T->firstchild, print_text);    //先序遍历左子树输出文本
-    std::cout << "]" << std::endl;
+    std::cout << "]" << std::endl << std::endl;
 } 
+
+
+// //打印开始标签、自闭合标签和文本标签
+// void print_tag(CSTree node)
+// {
+//     TagType type = node->data.type;
+//     if(type == Text){    //文本直接打印
+//         std::cout << node->data.tag_name << std::endl;
+//     }
+//     else if(type == StartTag || type == Single){    //如果是自闭合标签或者开始标签
+//         std::cout << "<" << node->data.tag_name;    //打印标签名
+//         for(const auto& attr: node->data.attrs){    //依次打印标签属性
+//             std::cout << " " << attr.name << "=\"" << attr.value << "\"";
+//         }
+//         std::cout << ">" ;      //打印>符号
+//     }
+//     else{   //未知标签的打印
+//         std::cout << "<! UNKNOW...>" ;
+//     }
+// }
 
 //输出html块
 void out_html(CSTree T, std::string html)
@@ -322,7 +817,8 @@ void out_html(CSTree T, std::string html)
     start = T->data.start;     
     end = T->data.end;
     std::string out = html.substr(start, end - start + 1);   //获取tag子串
-    std::cout << "[ " << out <<  " ]" << std::endl;                 //打印tag块
+    std::cout << "\033[32mOut[" << Counter << "]: \033[0m" << std::endl;
+    std::cout << "[ " << out <<  " ]" << std::endl << std::endl;                 //打印tag块
     /*
     //如果结点没有存储位置信息
     std::vector<CSTree> tags;    //输出标签辅助栈
@@ -353,22 +849,22 @@ void out_html(CSTree T, std::string html)
 }
 
 //获取a标签的href
-bool out_href(CSTree node)
+void out_href(CSTree node)
 {
     if(!node){    //空节点直接返回
-        return false;
+        return ;
     }
     if(node->data.tag_name != "a"){     //如果不是a标签，打印错误，返回 
-        //std::cout << "only tag<a> has attribute <href>" << std::endl;
-        return false;
+        std::cout << "\033[32mOut[" << Counter << "]:\033[0m " << "\033[31mOnly tag<a> has attribute 'href'\033[0m" << std::endl;
+        return ;
     }  
     for(const auto&attr: node->data.attrs){    //遍历属性表，如果有href属性则打印
         if(attr.name == "href"){
             std::cout << "\033[32mOut[" << Counter << "]:\033[0m [ " << attr.value << " ]" << std::endl;    //输出href
-            return true;
+            return ;
         }
     }
-    return false;
+    std::cout << "\033[32mOut[" << Counter << "]:\033[0m " << "\033[31mThe element <" << node->data.tag_name << "> has no attribute 'href'\033[0m" << std::endl;
 }
 
 //打印选择器得到的nodeslist表
@@ -387,7 +883,7 @@ void print_nodeslist(std::vector<CSTree> &nodeslist, std::string &html)
             std::cout << i << " |" << html.substr(start, len) << "," << std::endl;
         }
     }
-    if(n >= 0){
+    if(n >= 0){       //输出最后一个node结点标签
         start = nodeslist[n]->data.start;
         len = nodeslist[n]->data.end - start + 1;  //标签长度
         if(len > PrintSTagLen){    //标签长度超过限制，使用padding表示省略 
@@ -396,505 +892,10 @@ void print_nodeslist(std::vector<CSTree> &nodeslist, std::string &html)
         else{    //否则直接输出
             std::cout << n  << " |" << html.substr(start, len) << "]" << std::endl;
         }
+        std::cout << std::endl;
     }
     else{
         std::cout << " ]" << std::endl << std::endl;
-    }
-}
-
-//属性选择器
-void select_by_attr(CSTree T, std::string attrname, std::string attrvalue, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    if(match_by_attr(T, attrname, attrvalue)){   //单独判断根结点   
-        nodeslist.push_back(T);
-    }
-    CSTree node = T->firstchild;
-    std::stack<CSTree> nodes;
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            if(match_by_attr(node, attrname, attrvalue)){   //匹配节点   
-                nodeslist.push_back(node);
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-//属性名选择器
-void select_by_attrname(CSTree T, std::string attrname, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    if(match_by_attrname(T, attrname)){   //单独判断根结点   
-        nodeslist.push_back(T);
-    }
-    CSTree node = T->firstchild;
-    std::stack<CSTree> nodes;
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            if(match_by_attrname(node, attrname)){   //匹配节点   
-                nodeslist.push_back(node);
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-//标签选择器
-void select_by_tag(CSTree T, std::string tag, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    CSTree node = T->firstchild;
-    std::stack<CSTree> nodes;
-
-    if(match_by_tagname(T, tag)){   //单独判断根结点    
-        nodeslist.push_back(T);
-    }
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            if(match_by_tagname(node, tag)){   //匹配节点   
-                nodeslist.push_back(node);
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-
-
-//标签属性选择器
-void select_by_tag_attr(CSTree T, std::string tag, std::string attrname,
-                         std::string attrvalue, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    CSTree node = T->firstchild;
-    std::stack<CSTree> nodes;
-
-    if(match_by_tag_attr(node, tag, attrname, attrvalue)){   //单独判断根结点      
-        nodeslist.push_back(node);    
-    }
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            if(match_by_tag_attr(node, tag, attrname, attrvalue)){   //匹配节点   
-                nodeslist.push_back(node);    //加入新结点
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-//多属性值选择器
-void select_by_attr_multivalue(CSTree T, std::string attrname, std::vector<std::string> subvalues, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    if(match_by_subattrvalue(T, attrname, subvalues)){   //先判断根结点  
-        nodeslist.push_back(T);    
-    }
-    CSTree node = T->firstchild;    //在左子树上进行查找
-    std::stack<CSTree> nodes;
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            if(match_by_subattrvalue(node, attrname, subvalues)){   //匹配节点   
-                nodeslist.push_back(node);    //加入新结点
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-
-//单属性值子串选择器
-void select_by_attr_subvalue(CSTree T, std::string attrname, std::string subvalue, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    if(match_by_subvalue(T, attrname, subvalue)){   //先判断根结点  
-        nodeslist.push_back(T);    
-    }
-    CSTree node = T->firstchild;    //在左子树上进行查找
-    std::stack<CSTree> nodes;
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            if(match_by_subvalue(node, attrname, subvalue)){   //匹配节点   
-                nodeslist.push_back(node);    //加入新结点
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-//根据属性值的开头（后接-符或者就是完整单词）选择
-void select_by_headvalue(CSTree T, std::string attrname, std::string headvalue, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    if(match_by_valueprefix(T, attrname, headvalue + "-") || match_by_attr(T, attrname, headvalue)){   //先判断根结点  
-        nodeslist.push_back(T);    
-    }
-    CSTree node = T->firstchild;    //在左子树上进行查找
-    std::stack<CSTree> nodes;
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            //如果属性值以headvalue-为前缀或者就是headvalue
-            if(match_by_subvalue(node, attrname, headvalue + "-") || match_by_attr(node, attrname, headvalue)){     
-                nodeslist.push_back(node);    //加入新结点
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-
-//根据属性值的前缀选择
-void select_by_prefix(CSTree T, std::string attrname, std::string valueprefix, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    if(match_by_valueprefix(T, attrname, valueprefix)){   //先判断根结点  
-        nodeslist.push_back(T);    
-    }
-    CSTree node = T->firstchild;    //在左子树上进行查找
-    std::stack<CSTree> nodes;
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            //如果属性值以headvalue-为前缀或者就是headvalue
-            if(match_by_subvalue(node, attrname, valueprefix)){     
-                nodeslist.push_back(node);    //加入新结点
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-//根据属性值后缀进行查找
-void select_by_suffix(CSTree T, std::string attrname, std::string valuesuffix, std::vector<CSTree> &nodeslist)
-{
-    if(!T){     //树空直接返回
-        return ;
-    }
-    if(match_by_valuesuffix(T, attrname, valuesuffix)){   //先判断根结点  
-        nodeslist.push_back(T);    
-    }
-    CSTree node = T->firstchild;    //在左子树上进行查找
-    std::stack<CSTree> nodes;
-    while(!nodes.empty() || node){   //栈非空或者node存在
-        while(node){      //向左访问结点
-            //如果属性值以headvalue-为前缀或者就是headvalue
-            if(match_by_valuesuffix(node, attrname, valuesuffix)){     
-                nodeslist.push_back(node);    //加入新结点
-            }
-            nodes.push(node);    //访问过的结点入栈 
-            node = node->firstchild;   //向左继续走
-        }
-        node = nodes.top();     //最左孩子出栈
-        nodes.pop();
-        node = node->nextsibling;  //向右一步
-    }
-}
-
-//id属性选择器
-void id_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist)
-{
-    std::string attrvalue;
-    int start = select.find_first_not_of(" #", 0);
-    int end = select.find_first_of(" ", start);    //属性值结尾
-    attrvalue = select.substr(1, end - start);         //获取属性值
-
-    //在T树进行查找
-    select_by_attr(T, "id", attrvalue, nodeslist);
-}
-
-//标签选择器
-void tag_selector(CSTree T, std::string tag_name, std::vector<CSTree> &nodeslist, bool last)
-{
-    std::vector<CSTree> tmplist;
-    if(last){     //从nodeslist列表的子树继续查找
-        for(const auto &node: nodeslist){
-            select_by_tag(node->firstchild, tag_name, tmplist);
-        }
-        std::unordered_set<CSTree> seen;
-        nodeslist.clear();     //清空上一次结果
-        for (const CSTree& node : tmplist) {
-            if (seen.insert(node).second) { // 如果插入成功，说明这个元素之前没见过
-                nodeslist.push_back(node); // 加入node
-            }
-        }
-    }
-    else{   //从T树上查找
-        select_by_tag(T, tag_name, tmplist);
-        swap(nodeslist, tmplist);    //更新列表
-    }
-}
-
-//标签class属性选择器
-void tag_class_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist)
-{
-    std::vector<std::string> tag_class;   //tag和class属性值
-    int num = split_string(select, '.', tag_class);  
-    if(num != 2){     //切词数不等于2则错误，返回
-        std::cout <<  "\033[32mOut[" << Counter << "]:\033[0m " << " \033[31mthe selector of element_calss_selecotr should be 'element.class'.  \033[0m" << std::endl;
-        return ;
-    }
-    //从T树上查找
-    select_by_tag_attr(T, tag_class[0], "class", tag_class[1], nodeslist);     
-}
-
-
-//class属性选择器
-void class_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist, bool last)
-{
-    std::vector<std::string> subvalues;
-    std::vector<CSTree> tmplist;
-    int num = split_string(select, '.', subvalues);   //按点进行切割
-    if(num <= 0){       //select为空，直接返回
-        return ;
-    }
-    if(last){     //从nodeslist列表里直接过滤
-        if(num > 1){     //多class属性值查找
-            for(const auto &node: nodeslist){
-               select_by_attr(node, "class", subvalues[0], tmplist);
-            }
-            std::unordered_set<CSTree> seen;
-            for (const CSTree& node : tmplist) {
-                if (seen.insert(node).second) { // 如果插入成功，说明这个元素之前没见过
-                    nodeslist.push_back(node); // 加入node
-                }
-            }
-        }
-        else{    //单class属性值查找
-            select_by_attr(T, "class", subvalues[0], tmplist);
-            swap(nodeslist, tmplist);    //更新列表 
-        }
-    }
-    else{      //从T树上查找
-        if(num > 1){     //多class属性值查找
-            select_by_attr_multivalue(T, "class", subvalues, tmplist);
-        }
-        else{    //单class属性值查找
-            select_by_attr(T, "class", subvalues[0], tmplist);
-        }
-        swap(nodeslist, tmplist);    //更新列表   
-    }  
-}
-
-//逗号标签选择器,element1,element2 选择所有element1元素和所有element2元素。
-void comma_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist)
-{
-    std::vector<std::string> tags;
-    int num = split_string(select, ',', tags);     //按逗号进行切割  
-    if(num <= 0){       //select为空，直接返回
-        return ;
-    }
-    else{      //从T树上查找
-        for(const auto& tag: tags){    //依次查找标签
-            select_by_tag(T, tag, nodeslist);
-        }
-    }
-}
-
-//子选择器， element1>element2，选择element1的直接子标签element2
-void child_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist)
-{
-    std::vector<CSTree> tmplist, result;    //缓存表
-    std::vector<std::string> tags;
-    int num = split_string(select, '>', tags);
-    if(num != 2){       //标签小于2个，直接返回
-        std::cout <<  "\033[32mOut[" << Counter << "]:\033[0m " << " \033[31mthe selector of child_selecotr should be 'parent>child'.  \033[0m" << std::endl;
-        return ;
-    }
-    select_by_tag(T, tags[0], tmplist);    //查找父元素
-    for(const auto &node: tmplist){   //匹配每个node的直接子元素
-        if(match_by_tagname(node->firstchild, tags[1])){
-            result.push_back(node->firstchild);
-        }
-    }
-    swap(result, nodeslist);    //更新列表
-}
-
-//相邻兄弟选择器
-void adjacen_sibling_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist)
-{
-    std::vector<CSTree> tmplist, result;    //缓存表
-    std::vector<std::string> tags;
-    int num = split_string(select, '+', tags);
-    if(num != 2){       //标签小于2个，直接返回
-        std::cout <<  "\033[32mOut[" << Counter << "]:\033[0m " << " \033[31mthe selector of child_selecotr should be 'element>sibling'.  \033[0m" << std::endl;
-        return ;
-    }
-    select_by_tag(T, tags[0], tmplist);    //查找第一个元素
-    for(const auto &node: tmplist){   //匹配每个node的相邻兄弟元素
-        if(match_by_tagname(node->nextsibling, tags[1])){
-            result.push_back(node->nextsibling);
-        }
-    }
-    swap(result, nodeslist);    //更新列表
-}
-
-//兄弟选择器
-void sibling_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist, bool last)
-{
-    std::vector<CSTree> tmplist, result;    //缓存表
-    std::vector<std::string> tags;
-    int num = split_string(select, '~', tags);
-    if(num != 2){       //标签小于2个，直接返回
-        std::cout <<  "\033[32mOut[" << Counter << "]:\033[0m " << "\033[31mthe selector of child_selecotr should be 'element>sibling'. \033[0m" << std::endl;
-        return ;
-    }
-    select_by_tag(T, tags[0], tmplist);    //查找第一个元素
-    std::unordered_set<CSTree> seen;
-    for(auto &node: tmplist){   //匹配每个node的相邻兄弟元素
-        while(node){
-            node = node->nextsibling;
-            if(match_by_tagname(node, tags[1]) && seen.insert(node).second){
-                result.push_back(node);
-            }
-        }
-    }
-    swap(result, nodeslist);    //更新列表
-}
-
-
-//属性选择器
-void attr_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist)
-{
-    std::string attrname, attrvalue;
-    std::vector<CSTree> tmplist;
-    int start, end;
-    start = select.find_first_not_of("[ ", 0);
-    end = select.find_first_of("=~|^]$ ");
-    attrname = select.substr(start, end - start);    //属性名
-    
-    start = select.find_first_of("=~|^&$]", start);
-    char s = select[start];
-    start = select.find_first_not_of(" = ~|^&$", start);    //属性值
-    if(start > 0){
-        end = select.find_first_of(" ]", start);
-        attrvalue = select.substr(start, end - start);
-    }
-    if(s == ']'){             //根据属性名查找
-        select_by_attrname(T, attrname, tmplist);
-    }
-    else if(s == '='){      //根据属性名和属性值查找
-        select_by_attr(T, attrname, attrvalue, tmplist);
-    }
-    else if(s == '~'){    //选择属性值子串查找
-        select_by_attr_subvalue(T, attrname, attrvalue, tmplist);
-    }
-    else if(s == '|'){    //根据属性值的开头（后接-符或者就是完整单词）查找
-        select_by_headvalue(T, attrname, attrvalue, tmplist);
-    }  
-    else if(s == '^'){    //根据属性值前缀查找
-        select_by_prefix(T, attrname, attrvalue, tmplist);
-    }
-    else if(s == '$'){   
-        select_by_suffix(T, attrname, attrvalue, tmplist);
-    }
-    else {
-        std::cout <<  "\033[32mOut[" << Counter << "]:\033[0m " << "\033[31mthe selector of child_selecotr should be '[attribute (operation) (attrvaue)]. operation: =~|^&\033[0m" << std::endl;
-        return ;
-    }
-    swap(tmplist, nodeslist);    //更新列表
-
-}
-
-void css_selector(CSTree T, std::string select, std::vector<CSTree> &nodeslist, bool last)
-{
-    if(!T){     //树不存在
-        return ;
-    }
-    if(select[0] == '.'){     //class选择器
-        class_selector(T, select, nodeslist, last);
-    }
-    else if(select.find("[", 0) != -1){      //属性选择器
-        attr_selector(T, select, nodeslist);
-    }
-    else if(select[0] == '#'){   //id选择器
-        id_selector(T, select, nodeslist);
-    }
-    else if(select == "*"){   //通配符选择器
-        tag_selector(T, "*", nodeslist, last);
-    }
-    else if(select.find(",", 0) != -1){     //逗号(标签)选择器
-        comma_selector(T, select, nodeslist);
-    }
-    else if(select.find('>', 0) != -1){   //子选择器
-        child_selector(T, select, nodeslist);
-    }
-    else if(select.find('+', 0) != -1){        //相邻兄弟选择器
-        adjacen_sibling_selector(T, select, nodeslist);
-    }
-    else if(select.find('~', 0) != -1){      //兄弟选择器
-        sibling_selector(T, select, nodeslist, last);
-    }
-    else if(select.find(".", 0) != -1){     //标签class选择器
-        tag_class_selector(T, select, nodeslist);
-    }
-    else {     //标签选择器
-        tag_selector(T, select, nodeslist, last);
-    }
-}
-
-//css选择器
-void query(CSTree T, std::string selector, std::vector<CSTree> &nodeslist)
-{
-    if(!T){
-        std::cout << "033[31mWarning: Haven't open file or fetch url\033[0m" << std::endl;
-        return ;
-    }
-    std::string select;         //单个选择器
-    std::vector<std::string> selects;    //选择表
-
-    int size = split_string(selector, ' ', selects);    //先用空格切割得到选择表
-    //依次进行选择
-    css_selector(T, selects[0], nodeslist, false);    //第一次选择器
-    for (int i = 1; i < size; i++){       //剩下的选择器
-        select = selects[i];
-       css_selector(T, select, nodeslist, true);
     }
 }
 
@@ -945,48 +946,45 @@ Operation get_command(std::string command)
 //解析输入命令
 void parser_command(std::string command, int &k, Operation &opt, std::string &path, std::string &selector)
 {
-    if(command == ""){
-        opt = Wrong;
-        return ;
-    }
     std::string operation1, operation2, strk;    //操作和数字k的字符串
     int size = command.length(), start = 0, end;
     //获取第一个操作
-    start = command.find_first_not_of(" ", 0);
+    start = command.find_first_not_of(" .([", 0);
     end = command.find_first_of("([", start);
+    if(end < 0) {end = size; }
     operation1 = command.substr(start, end - start);
-    opt = get_command(operation1);
-    if(opt == Wrong){    //如果操作1错误，打印错误并返回
+    opt = get_command(operation1);              //指令一类型
+    if(opt == Wrong){                   //如果操作1错误，打印错误并返回
         std::cout << "\033[32mOut[" << Counter << "]:\033[0m " << "\033[31mNameError: name '" << operation1 <<  "' is not defined\033[0m" << std::endl;
         return ;
     }
-    if(opt == Read || opt == Fetch){   //如果是read命令，获取path
+    if(opt == Read || opt == Fetch){    //如果是read命令，获取path或者url
         start = command.find_first_not_of(" (", end);
-        end = command.find_first_of(")", start);
+        end = command.find_first_of(") ", start + 1);
         path = command.substr(start, end - start);
         return ;
     }
-    else if(opt == Query){   //如果是query命令，获取selector
+    else if(opt == Query){              //如果是query命令，获取selector
         start = command.find_first_not_of(" (", end);
-        end = command.find_first_of(")", start);
+        end = command.find_first_of(")", start + 1);
         selector = command.substr(start, end - start);
         return ;
     }
-    else  if(opt == Out){       //command是out[k]类型指令
+    else  if(opt == Out){               //command是out[k]类型指令
         //获取k值
-        start = command.find_first_not_of("[", end);
-        end = command.find_first_of( "]", start);
+        start = command.find_first_not_of("[ ", end);
+        end = command.find_first_of( "] ", start + 1);
         strk = command.substr(start, end - start);
         //如果strk不是数字或者为空，返回错误
         if(strk.empty() || !std::all_of(strk.begin(), strk.end(), ::isdigit)){   
             opt = Wrong;
-            std::cout << "\033[32mOut[" << Counter << "]:\033[0m " <<"\033[31mKError: name'" << operation1 <<  "'K is not a number\033[0m" << std::endl;
+            std::cout << "\033[32mOut[" << Counter << "]:\033[0m " <<"\033[31mKError: name'" << strk <<  "'K is not a number\033[0m" << std::endl;
             return ;
         }
-        k = std::stoi(strk);
+        k = std::stoi(strk);     //将字符串转为数字
         if(command.find("(", start) != -1){       //如果最后一个字符是)，则是KQuery指令
-            start = command.find_first_not_of(".[]", end);
-            end = command.find_first_of("(.", start);
+            start = command.find_first_not_of(".", end + 1);
+            end = command.find_first_of("(", start);
             operation2 = command.substr(start, end - start);   //获取第二个指令
             opt = get_command(operation2);
             if(opt == Query){    //如果是Query指令,获取selector
@@ -995,22 +993,20 @@ void parser_command(std::string command, int &k, Operation &opt, std::string &pa
                 end = command.find_first_of(")", start);
                 selector = command.substr(start, end - start);
             }
-            else{
-                opt = Wrong;
-            }
         }
         else{                             //否则是其他out指令
-            start = command.find_first_not_of(". ][", end);
-            operation2 = command.substr(start, size - end - 1);   //获取第二个指令
+            start = end + 2;
+            operation2 = command.substr(start, size - start);   //获取第二个指令
             opt = get_command(operation2);
         }
     }
-    if(opt == Wrong){    //如果操作2错误，打印错误并返回
+    if(opt == Wrong){           //如果操作2错误，打印错误
         std::cout << "\033[32mOut[" << Counter << "]:\033[0m " << "\033[31mNameError: name '" << operation2 <<  "' is not defined\033[0m" << std::endl;
     }
 }
 
-//输出指令列表
+
+//输出使用说明
 void PrintUsage()
 {
     std::cout << std::endl;
@@ -1020,70 +1016,69 @@ void PrintUsage()
     std::cout << "\t" << "Out [options]. <command> (args)" << std::endl;
     std::cout << "Available commands:" << std::endl;
     std::cout << "[s]\t" << "exit()            Exit program" << std::endl;       
-    std::cout << "[s]\t" << "read(path)        Read the html file in the path" << std::endl;
-    std::cout << "[s]\t" << "fetch(url)        Get html content based on the url"<< std::endl;            
-    std::cout << "[s]\t" << "query(selector)   Choose html tag from whole html, you can see more details in https://www.w3school.com.cn/cssref/css_selectors.asp"<< std::endl;
+    std::cout << "[s]\t" << "read(path)        Read the html file from the path" << std::endl;
+    std::cout << "[s]\t" << "fetch(url)        Get the web content from the url"<< std::endl;            
+    std::cout << "[s]\t" << "query(selector)   Choose element by seletor expression, you can see more details in https://www.w3school.com.cn/cssref/css_selectors.asp"<< std::endl;
     std::cout << "[s]\t" << "list              Output a list of query result" << std::endl;
-    std::cout << "[s]\t" << "out[k].command    Execute commands on No.k element of query result list, which commands include query and the following:"<< std::endl;
+    std::cout << "[s]\t" << "out[k].command    Execute commands on No.k element of query elements list, which commands include query and the following:"<< std::endl;
     std::cout << "[s]\t" << "innertext         Output the nested text content of No.k element"<< std::endl;
     std::cout << "[s]\t" << "html              Output the whole html code of No.k element"<< std::endl;
-    std::cout << "[s]\t" << "href              Output the href attribute of tag<a>"<< std::endl << std::endl;
+    std::cout << "[s]\t" << "href              Output the 'href' attribute of tag<a>"<< std::endl << std::endl;
 }
+
+
 
 //交互程序
 void interact()
 {
-    std::vector<CSTree> nodeslist, tmplist;    //存放query匹配到的的结点列表和临时列表
-    std::vector<Tag> tags;      //标签顺序表
-    CSTree T = nullptr, root;       //标签树
-    std::string command;     //用户指令
-    int k = -1;      //指令中的下标
-    Operation operation;    //操作指令
-    std::string path_url, html, selector;    //文件路径/url地址、html字符串，输入选择器
-    nodeslist.push_back(T);   //压入根结点
+    std::vector<CSTree> nodeslist;      //存放query匹配到的的结点列表
+    std::vector<Tag> tags;              //存放标签顺序表
+    CSTree T = nullptr, root;           //html树，子树
+    std::string command;                //用户指令
+    int k = -1;                         //out指令中的下标
+    Operation operation;                //指令类型
+    std::string path_url, html, selector;    //文件路径或url地址、html字符串，选择器表达式
     while(operation != Exit){   //exit指令退出
-        Counter ++;
+        Counter ++;             //控制全局命令交互行数
         std::cout << "\033[32mIn [" << Counter << "]:\033[0m " ;
         std::getline(std::cin, command);      //输入指令
         parser_command(command, k, operation, path_url, selector);     //解析指令
-        switch (operation)        //根据指令执行操作
+        switch (operation)      //根据指令执行操作
         {
-        case Wrong:       //错误指令不执行
+        case Wrong:             //错误指令不执行
             break;
-        case Help:       //打印使用说明
+        case Help:              //打印使用说明
             PrintUsage();   
             break; 
-        case Read:       //读取文件
+        case Read:              //读取文件
             if(read_file(html, path_url)){    //成功读取
                 std::cout<< "\033[32mOut[" << Counter << "]:\033[0m " << "Sucessfully read this file" << std::endl;
-                if(T){    //如果树已经存在，先销毁树
+                if(T){                      //如果树已经存在，先销毁树
                     destroy_tree(T);
-                    tags.clear();   //清空tags数组
+                    tags.clear();           //清空tags数组
                 }
                 split_tags(html, tags);    //切割标签
-                init_tree(T);      //初始化树 
+                init_tree(T);              //初始化树 
                 create_tree(T, tags);      //构造html树
             }
-            else{     //读取失败
+            else{           //读取失败
                 std::cout << "\033[32mOut[" << Counter << "]:\033[0m \033[31mCan't open this file" << std::endl;
                 std::cout << "          Check for spelling mistakes in the path and whether the file exists\033[0m" << std::endl;
             }
             break;
         case Fetch:       //获取网页内容
+            html = "";
             if(fetch_url(html, path_url)){   //获取成功
                 std::cout<< "\033[32mOut[" << Counter << "]:\033[0m " << "Sucessfully fetch this url" << std::endl;
-                if(T){    //如果树已经存在，先销毁树
+                if(T){                      //如果树已经存在，先销毁树
                     destroy_tree(T);
-                    tags.clear();   //清空tags数组
+                    tags.clear();           //清空tags数组    
                 }
-                //将网页源码转为小写
-                std::transform(html.begin(), html.end(), html.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
                 split_tags(html, tags);    //切割标签
-                init_tree(T);
+                init_tree(T);              //初始化树 
                 create_tree(T, tags);      //构造html树
             }
-            else{     //获取失败
+            else{       //获取失败
                 std::cout << "\033[32mOut[" << Counter << "]:\033[0m \033[31mCan't fetch this url " << std::endl;
                 std::cout << "          Check for access authority to the url and whether the url exists\033[0m" << std::endl;
             }
@@ -1100,7 +1095,7 @@ void interact()
                 break;
             }
             root = nodeslist[k];
-            nodeslist.clear();    //清空上一次结果
+            nodeslist.clear();              //清空上一次结果
             query(root, selector, nodeslist);
             std::cout << "\033[32mOut[" << Counter << "]:\033[0m ";
             print_nodeslist(nodeslist, html);     //打印结果
@@ -1111,9 +1106,10 @@ void interact()
                 break;
             }
             if(html == ""){     //如果没有读取到文件或者返回url内容
-                std::cout << "\033[32mOut[" << Counter << "]:\033[0m  \033[31mHaven't read file or fetch url \033[0m" << std::endl;
+                std::cout << "\033[32mOut[" << Counter << "]:\033[0m  \033[31mHaven't open file or fetched url \033[0m" << std::endl;
                 break;
             }
+
             out_html(nodeslist[k], html);
             break;
         case KOutInnerText:   //输出标签内文本
@@ -1123,7 +1119,7 @@ void interact()
             }
             out_inner_text(nodeslist[k]);
             break;
-        case KOutHref:     //输出第k个tag标签的href属性
+        case KOutHref:      //输出第k个tag标签的href属性
             if(k < 0 || k > nodeslist.size()){    //k越界
                 std::cout << "\033[32mOut[" << Counter << "]:\033[0m  \033[31mk is among wrong range \033[0m" << std::endl;
                 break;
@@ -1149,6 +1145,6 @@ void interact()
 int main()
 {
     PrintUsage();      //打印使用说明
-    interact();         //交互实现
+    interact();         //CSS选择器交互实现
     return 0;
 }

@@ -64,6 +64,7 @@
         "variant": "cpp",
         "unordered_set": "cpp",
         "cstdarg": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "cinttypes": "cpp"
     }
 }

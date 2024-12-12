@@ -65,6 +65,7 @@
         "unordered_set": "cpp",
         "cstdarg": "cpp",
         "set": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "map": "cpp"
     }
 }

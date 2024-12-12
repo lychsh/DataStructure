@@ -130,11 +130,32 @@ void split_selector(std::string selector, std::vector<std::string> &selectors)
     }
 }
 
+
+#include <string>
+#include <locale>
+#include <codecvt>
+
+std::wstring s2ws(const std::string& str) {
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+    return converterX.from_bytes(str);
+}
+
+std::string ws2s(const std::wstring& wstr) {
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+    return converterX.to_bytes(wstr);
+}
+
 int main()
 {
-    std::string select = ".class.class  href div+ div > div~a [div~=class1] div";
-    std::vector<std::string> selectors;
-    split_selector(select, selectors);
-
-    return 0;
+    std::string s = "nhksdhf";
+    std::wstring ws = L"你好啊";
+    //std::cin >> s;
+    //ws = s2ws(s);
+    std::wcin >> ws;
+    s = ws2s(ws);
+    std::cout << ws.length() << s.length();
+    std::cout << s;
+    std::wcout << ws;
 }

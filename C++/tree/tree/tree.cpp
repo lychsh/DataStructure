@@ -110,7 +110,7 @@ bool read_file(std::string &html, std::string path)
     //预处理换行符
     int size = html.length();
     for(int i = 0; i < size; i++){
-        if(html[i] == '\n'){
+        if(html[i] == '\n' || html[i] == '\t'){
             html[i] = ' ';
         }
     }

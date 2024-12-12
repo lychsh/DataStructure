@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include<windows.h>
 #include <curl/curl.h>
+#include<unordered_map>
 
 //操作的类型
 enum Operation{
@@ -94,10 +95,12 @@ bool match_by_subattrvalues(CSTree node, std::string attrname, std::vector<std::
     if(!node){     //node结点为空，直接返回
         return false;
     }
+    std::string attrvalue;
     for (const auto& attr: node->data.attrs){   //遍历属性表比较
         if(attr.name == attrname){  //找到属性
             for (const auto& subval: subvalues){   //依次比较子串
-                if(attr.value.find(subval) == -1){     //子串不存在返回假
+                attrvalue = " " + attr.value + " ";    //首尾加空格便于查找
+                if(attrvalue.find(" " + subval + " ", 0) == -1){     //子串不存在返回假
                     return false;
                 }
             }
@@ -501,13 +504,13 @@ void select_by_suffix(CSTree T, std::string attrname, std::string valuesuffix, s
 //id属性选择器
 void id_selector(CSTree T, std::string select, std::unordered_set<CSTree> &nodes_set, bool tree_search)
 {
-    std::string attrvalue;
-    int start = select.find_first_not_of(" #", 0);
-    int end = select.find_first_of(" ", start);        //属性值结尾
-    attrvalue = select.substr(1, end - start);         //获取属性值
+    // std::string attrvalue;
+    // int start = select.find_first_not_of(" #", 0);
+    // int end = select.find_first_of(" ", start);        //属性值结尾
+    // attrvalue = select.substr(1, end - start);         //获取属性值
 
     //在T树进行查找
-    select_by_attr(T, "id", attrvalue, nodes_set, tree_search);
+    select_by_attr(T, "id", select, nodes_set, tree_search);
 }
 
 //标签选择器
@@ -525,7 +528,8 @@ void tag_class_selector(CSTree T, std::string select, std::unordered_set<CSTree>
     int end = select.find_first_of(".", 0);
     std::string tag_name = select.substr(0, end);
     std::vector<std::string> subvalues;
-    split_string(select.substr(end + 2, select.length() - end), '.', subvalues);
+    
+    split_string(select.substr(end + 1, select.length() - end), '.', subvalues);
 
     //从T树上查找
     select_by_tag_attr_multivalue(T, tag_name, "class", subvalues, nodes_set, tree_search);     
@@ -550,9 +554,12 @@ void class_selector(CSTree T, std::string select, std::unordered_set<CSTree> &no
 void child_selector(std::unordered_set<CSTree> &nodes_set)
 {
     std::unordered_set<CSTree> tmpset;
+    CSTree child;       //子元素
     for(auto &node: nodes_set){   //匹配每个node的相邻兄弟元素
-        if(node->firstchild){
-            tmpset.insert(node->firstchild);
+        child = node->firstchild;
+        while(child){      //遍历所有直接子元素
+            tmpset.insert(child);
+            child = child->nextsibling;
         }
     }
     swap(tmpset, nodes_set);     //更新集合
@@ -633,6 +640,37 @@ void attr_selector(CSTree T, std::string select, std::unordered_set<CSTree> &nod
 
 }
 
+//选择器表达式切词器
+int split_selector(std::string selector, std::vector<std::string> &result)
+{
+    int start = 0, end, count = 0, len;
+    int size = selector.length();    //字符串长度
+    std::string delimiter = " >+~[.#*", delimiter1 = " .#>+~";
+    while(start < size){
+        if(selector[start] == '*' || delimiter1.find(selector[start]) != -1){
+            result.push_back(selector.substr(start, 1));   //*和分隔符存入结果
+            start++;
+            count++;
+            continue;
+        }
+        //查找选择器结尾
+        if(selector[start] == '['){      //属性选择器结尾需单独判断
+            end = selector.find_first_of("]", start + 1) + 1;    //加1包含结束符']'
+        }
+        else{
+            end = selector.find_first_of(delimiter, start + 1);
+        }
+        if(end <= 0){     //end小于0，只剩最后一个子串
+            result.push_back(selector.substr(start, -1));   //加入子串
+            count ++;
+            break;
+        }
+        result.push_back(selector.substr(start, end - start));   //加入子串
+        count ++;
+        start = end;
+    }
+    return count;    //返回子串个数
+}
 
 //查询函数，根据css选择器规则进行查询，按逗号选择器并列查询
 void query(CSTree T, std::string selector, std::vector<CSTree> &nodeslist)
@@ -648,34 +686,35 @@ void query(CSTree T, std::string selector, std::vector<CSTree> &nodeslist)
     nodes_set.insert(T);                            //插入根节点
     int total_num = split_string(selector, ',', total_selectors);     //先用逗号切割得到并列选择表
     for(int i = 0; i < total_num; i ++){                       //对并列表查询
-        int num = split_string(total_selectors[i], ' ', selectors);      //分别用空格切割得到选择器表
+        selectors.clear();
+        selectors.push_back(" ");        //先压入一个空格，开始从整个html树上搜索
+        int num = split_selector(total_selectors[i], selectors) + 1;      //分别用空格和分隔符切割得到选择器表
         for(int j = 0; j < num; j++){                          //对选择器表查询
             // 如果是子选择器，兄弟选择器或者相邻兄弟选择器，更新node集合，下一次查找只对子树根结点查找
+            tree_search = selectors[j] == " "? true: false;    //空格选择器在整个树上查找
+            j += tree_search;
             if(selectors[j] == ">"){         //子选择器
                 child_selector(nodes_set);
-                tree_search = false;
                 continue;
             }
             else if(selectors[j] == "+"){         //相邻兄弟选择器
                 adjacen_sibling_selector(nodes_set);
-                tree_search = false;
                 continue;
             }
             else if(selectors[j] == "~"){         //兄弟选择器
                 sibling_selector(nodes_set);
-                tree_search = false;
                 continue;
             }
             //如果是其他类型选择器，在整个树上查找
             for(const CSTree& node: nodes_set){
                 if(selectors[j][0] == '.'){                       //class选择器
-                    class_selector(node, selectors[j], tmpset, tree_search);
+                    class_selector(node, selectors[j + 1], tmpset, tree_search);
                 }
                 else if(selectors[j].find("[", 0) != -1){         //属性选择器
                     attr_selector(node, selectors[j], tmpset, tree_search);
                 }
                 else if(selectors[j][0] == '#'){                  //id选择器
-                    id_selector(node, selectors[j], tmpset, tree_search);
+                    id_selector(node, selectors[j + 1], tmpset, tree_search);
                 }
                 else if(selectors[j] == "*"){                     //通配符选择器
                     tag_selector(node, "*", tmpset, tree_search);
@@ -687,9 +726,9 @@ void query(CSTree T, std::string selector, std::vector<CSTree> &nodeslist)
                     tag_selector(node, selectors[j], tmpset, tree_search);
                 }
             }
-            tree_search = true;
             swap(tmpset, nodes_set);                      //更新nodes集合
             tmpset.clear();                               //清空缓存集合
+            j += selectors[j] == "." || selectors[j] == "#";
         }
         // 将 set 中的元素复制到node列表中
         for(const CSTree& node: nodes_set){
